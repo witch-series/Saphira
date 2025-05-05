@@ -1,0 +1,42 @@
+<%- include('partials/header', { title: 'No Data' }); %>
+
+<div class="text-center py-5">
+  <div class="py-5 my-4">
+    <h2>No Data Available</h2>
+    <p class="lead mt-3 mb-4">
+      There's no data to display yet.<br>
+      Let's start collecting information using the button below.
+    </p>
+    
+    <div class="card mx-auto" style="max-width: 30rem;">
+      <div class="card-header bg-primary text-white">
+        Start Data Collection
+      </div>
+      <div class="card-body">
+        <div class="mb-3">
+          <p>You can easily collect data from various online sources with a few simple steps:</p>
+          <ol class="text-start">
+            <li>Select data sources you want to use</li>
+            <li>Enter keywords (optional)</li>
+            <li>Adjust collection settings if needed</li>
+            <li>Click the "Start Collection" button</li>
+          </ol>
+        </div>
+        
+        <div class="d-grid gap-2">
+          <a href="/collection" class="btn btn-primary btn-lg">
+            <i class="bi bi-cloud-download"></i> Start Data Collection
+          </a>
+        </div>
+      </div>
+    </div>
+    
+    <div class="mt-5">
+      <a href="/" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-clockwise"></i> Refresh Page
+      </a>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer'); %>

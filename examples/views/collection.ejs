@@ -1,0 +1,289 @@
+<%- include('partials/header', { title: 'Data Collection' }); %>
+
+<div class="mb-4">
+  <div class="d-flex justify-content-between align-items-center">
+    <h2>Data Collection</h2>
+    <a href="/" class="btn btn-outline-primary">Back</a>
+  </div>
+  <p class="lead">Configure and start data collection from various sources based on your interests.</p>
+  
+  <!-- Help information -->
+  <div class="alert alert-info">
+    <h5><i class="bi bi-info-circle me-2"></i>About Data Collection</h5>
+    <p>This page allows you to automatically collect data from various online sources. Follow these steps:</p>
+    <ol>
+      <li>Select data sources (you can select multiple)</li>
+      <li>Enter search keywords (comma separated)</li>
+      <li>Adjust collection settings</li>
+      <li>Click the "Start Collection" button</li>
+    </ol>
+    <p class="mb-0">Collected data will be automatically saved and can be viewed on the home page.</p>
+  </div>
+</div>
+
+<% if (typeof message !== 'undefined' && message) { %>
+  <div class="alert alert-info alert-dismissible fade show" role="alert">
+    <%= message %>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+<% } %>
+
+<% if (typeof status !== 'undefined' && status) { %>
+  <div class="card shadow-sm mb-4" id="collection-status-card">
+    <div class="card-header bg-info text-white">
+      <h3>Collection Status</h3>
+    </div>
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4>Running: <span id="status-running"><%= status.running ? 'Yes' : 'No' %></span></h4>
+        <div id="loading-spinner" class="<%= status.running ? '' : 'd-none' %>">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      </div>
+      
+      <div id="collection-progress-container" class="<%= status.running ? '' : 'd-none' %>">
+        <div class="progress mb-3">
+          <div class="progress-bar progress-bar-striped progress-bar-animated" 
+               role="progressbar" 
+               id="progress-bar"
+               style="width: <%= status.progress %>%;" 
+               aria-valuenow="<%= status.progress %>" 
+               aria-valuemin="0" 
+               aria-valuemax="100">
+            <span id="progress-text"><%= status.progress %>%</span>
+          </div>
+        </div>
+        <p><strong>Current Source:</strong> <span id="current-source"><%= status.currentSource || 'Initializing...' %></span></p>
+        <p><strong>Items Collected:</strong> <span id="items-collected"><%= status.itemsCollected || 0 %></span></p>
+        <p><strong>Start Time:</strong> <span id="start-time"><%= status.startTime ? new Date(status.startTime).toLocaleString() : 'Unknown' %></span></p>
+        
+        <form action="/collection/stop" method="POST" class="mt-3">
+          <button type="submit" class="btn btn-danger">Stop Collection</button>
+        </form>
+      </div>
+      
+      <div id="collection-complete-container" class="<%= !status.running && status.progress === 100 ? '' : 'd-none' %>">
+        <div class="alert alert-success">
+          <i class="bi bi-check-circle-fill me-2"></i> Collection completed successfully!
+          <a href="/" class="btn btn-sm btn-primary ms-3">View Results</a>
+        </div>
+      </div>
+    </div>
+  </div>
+<% } %>
+
+<div class="card shadow-sm mb-4">
+  <div class="card-header">
+    <h3>Collection Settings</h3>
+  </div>
+  <div class="card-body">
+    <form action="/collection/start" method="POST">
+      <div class="mb-4">
+        <h4>Data Sources</h4>
+        <p class="text-muted">Select the sources to collect data from (multiple selections allowed):</p>
+        
+        <div class="alert alert-info">
+          <div class="d-flex justify-content-between align-items-center">
+            <div><i class="bi bi-info-circle me-2"></i> Some sources require an API key.</div>
+            <a href="/api-keys" class="btn btn-sm btn-primary">Manage API Keys</a>
+          </div>
+        </div>
+        
+        <div class="form-check mb-2">
+          <input class="form-check-input" type="checkbox" name="sources" value="newsapi" id="sourceNewsApi" checked>
+          <label class="form-check-label" for="sourceNewsApi">
+            News API <small class="text-muted">(API key required)</small>
+          </label>
+        </div>
+        
+        <div class="form-check mb-2">
+          <input class="form-check-input" type="checkbox" name="sources" value="arxiv" id="sourceArxiv" checked>
+          <label class="form-check-label" for="sourceArxiv">
+            arXiv
+          </label>
+        </div>
+        
+        <div class="form-check mb-2">
+          <input class="form-check-input" type="checkbox" name="sources" value="wikipedia" id="sourceWikipedia" checked>
+          <label class="form-check-label" for="sourceWikipedia">
+            Wikipedia
+          </label>
+        </div>
+        
+        <div class="form-check mb-2">
+          <input class="form-check-input" type="checkbox" name="sources" value="github" id="sourceGithub">
+          <label class="form-check-label" for="sourceGithub">
+            GitHub <small class="text-muted">(API key required)</small>
+          </label>
+        </div>
+        
+        <div class="form-check mb-2">
+          <input class="form-check-input" type="checkbox" name="sources" value="duckduckgo" id="sourceDuckDuckGo" checked>
+          <label class="form-check-label" for="sourceDuckDuckGo">
+            DuckDuckGo <small class="text-muted">(Privacy-focused web search)</small>
+          </label>
+        </div>
+        
+        <div class="form-check mb-2">
+          <input class="form-check-input" type="checkbox" name="sources" value="web" id="sourceWeb">
+          <label class="form-check-label" for="sourceWeb">
+            Web <small class="text-muted">(Experimental feature)</small>
+          </label>
+        </div>
+      </div>
+      
+      <div class="mb-4">
+        <h4>Search Keywords</h4>
+        <p class="text-muted">Enter the keywords to search for (comma separated):</p>
+        
+        <% if (interests && interests.length > 0) { %>
+          <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> Your interest tags will be automatically included.
+          </div>
+          
+          <div class="mb-3">
+            <p><strong>Your Interest Tags:</strong></p>
+            <% interests.forEach(interest => { %>
+              <span class="badge bg-primary me-1 mb-1"><%= interest.name %></span>
+            <% }) %>
+          </div>
+        <% } %>
+        
+        <div class="input-group mb-3">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input type="text" class="form-control" name="keywords" placeholder="AI, Machine Learning, Web Development">
+        </div>
+      </div>
+      
+      <div class="mb-4">
+        <h4>Advanced Settings</h4>
+        
+        <div class="mb-3">
+          <label for="maxResults" class="form-label">Max Results per Source: <span id="maxResultsDisplay">10</span></label>
+          <input type="range" class="form-range" id="maxResults" name="maxResults" min="5" max="50" value="10">
+        </div>
+        
+        <div class="mb-3">
+          <label for="processingLevel" class="form-label">Processing Level</label>
+          <select class="form-select" id="processingLevel" name="processingLevel">
+            <option value="basic" selected>Basic - Collect data only</option>
+            <option value="enhanced">Enhanced - Includes summaries and tags</option>
+            <option value="full">Full - Perform complete knowledge processing</option>
+          </select>
+        </div>
+        
+        <div class="form-check mb-3">
+          <input class="form-check-input" type="checkbox" name="saveToKnowledgeBooks" id="saveToKnowledgeBooks" checked>
+          <label class="form-check-label" for="saveToKnowledgeBooks">
+            Save results to Knowledge Books
+          </label>
+        </div>
+      </div>
+      
+      <button type="submit" class="btn btn-primary btn-lg">
+        <i class="bi bi-cloud-download"></i> Start Collection
+      </button>
+    </form>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-header">
+    <h3>Past Collections</h3>
+  </div>
+  <div class="card-body">
+    <% if (collections && collections.length > 0) { %>
+      <div class="list-group">
+        <% collections.forEach(collection => { %>
+          <div class="list-group-item">
+            <div class="d-flex w-100 justify-content-between align-items-center">
+              <h5 class="mb-1">Collection: <%= new Date(collection.date).toLocaleDateString() %></h5>
+              <small><%= new Date(collection.date).toLocaleTimeString() %></small>
+            </div>
+            <p class="mb-1">Sources: <%= collection.sources.join(', ') %></p>
+            <p class="mb-1">Item Count: <%= collection.itemCount %></p>
+            <div>
+              <a href="/view/collection-<%= collection.id %>" class="btn btn-sm btn-outline-primary">View Results</a>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    <% } else { %>
+      <div class="alert alert-info">
+        <p>No past collection data available. Start a new collection.</p>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<script>
+  // Update max results display on range slider change
+  document.getElementById('maxResults').addEventListener('input', function() {
+    document.getElementById('maxResultsDisplay').textContent = this.value;
+  });
+  
+  <% if (typeof status !== 'undefined' && status && status.running) { %>
+  // Auto-refresh collection status
+  (function() {
+    const statusEndpoint = '/api/collection/status';
+    const refreshInterval = 2000; // 2 seconds
+    
+    function updateStatus() {
+      fetch(statusEndpoint)
+        .then(response => response.json())
+        .then(data => {
+          // Update status elements
+          document.getElementById('status-running').textContent = data.running ? 'Yes' : 'No';
+          document.getElementById('current-source').textContent = data.currentSource || 'Initializing...';
+          document.getElementById('items-collected').textContent = data.itemsCollected || 0;
+          
+          // Update progress bar
+          const progressBar = document.getElementById('progress-bar');
+          progressBar.style.width = `${data.progress}%`;
+          progressBar.setAttribute('aria-valuenow', data.progress);
+          document.getElementById('progress-text').textContent = `${data.progress}%`;
+          
+          // Show/hide elements based on collection state
+          if (data.running) {
+            document.getElementById('loading-spinner').classList.remove('d-none');
+            document.getElementById('collection-progress-container').classList.remove('d-none');
+            document.getElementById('collection-complete-container').classList.add('d-none');
+          } else {
+            document.getElementById('loading-spinner').classList.add('d-none');
+            
+            if (data.progress === 100) {
+              document.getElementById('collection-progress-container').classList.add('d-none');
+              document.getElementById('collection-complete-container').classList.remove('d-none');
+              
+              // Reload page after 3 seconds to show results
+              setTimeout(() => {
+                window.location.href = '/';
+              }, 3000);
+              
+              return; // Stop refreshing
+            } else {
+              document.getElementById('collection-progress-container').classList.add('d-none');
+            }
+          }
+          
+          // Continue refreshing if collection is still running
+          if (data.running) {
+            setTimeout(updateStatus, refreshInterval);
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching collection status:', error);
+          // Retry after an interval even if there was an error
+          setTimeout(updateStatus, refreshInterval);
+        });
+    }
+    
+    // Start auto-refresh
+    setTimeout(updateStatus, refreshInterval);
+  })();
+  <% } %>
+</script>
+
+<%- include('partials/footer'); %>

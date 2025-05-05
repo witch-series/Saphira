@@ -1,0 +1,231 @@
+/**
+ * Saphira GUI Viewer Stylesheet
+ */
+
+/* Basic Styles */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
+  background-color: #f8f9fa;
+  padding-bottom: 60px;
+}
+
+/* Navigation Bar */
+.navbar {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand {
+  font-weight: bold;
+}
+
+/* Cards */
+.card {
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+  font-weight: 600;
+  background-color: #f8f9fa;
+}
+
+/* Tags */
+.badge {
+  font-weight: normal;
+  padding: 0.5em 0.8em;
+  background-color: #6c757d !important; /* デフォルトの背景色を灰色に */
+  color: #ffffff !important; /* デフォルトの文字色を白に */
+}
+
+/* 汎用タグのスタイルを改善 - 白背景に白文字の問題を修正 */
+.badge.bg-secondary {
+  background-color: #6c757d !important;
+  color: #ffffff !important;
+}
+
+/* Source Tags - Special Styles */
+.badge-source {
+  font-weight: 600;
+  color: #ffffff !important;
+  border: 1px solid rgba(0,0,0,0.2);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+}
+
+/* Colors for each source type */
+.badge-arxiv {
+  background-color: #B31B1B !important;
+  color: #ffffff !important;
+}
+
+.badge-wikipedia {
+  background-color: #2a4b8d !important;
+  color: #ffffff !important;
+}
+
+.badge-newsapi {
+  background-color: #FF6B00 !important;
+  color: #000000 !important;
+}
+
+.badge-github {
+  background-color: #24292E !important;
+  color: #ffffff !important;
+}
+
+.badge-web {
+  background-color: #0078D7 !important;
+  color: #ffffff !important;
+}
+
+.badge-duckduckgo {
+  background-color: #FF6B00 !important; /* オレンジ色に変更 */
+  color: #000000 !important; /* 文字色を黒に変更して視認性を向上 */
+}
+
+/* Default for unknown source types */
+.badge-unknown {
+  background-color: #6c757d !important;
+  color: #ffffff !important;
+}
+
+/* Tables */
+.table th {
+  border-top: none;
+  background-color: #f8f9fa;
+}
+
+.table-hover tbody tr:hover {
+  background-color: #f1f8ff;
+}
+
+/* Navigation Tabs */
+.nav-tabs .nav-link {
+  border-radius: 8px 8px 0 0;
+  font-weight: 500;
+  color: #495057; /* Dark text color for better readability */
+  background-color: #f0f0f0; /* Light gray background for inactive tabs */
+  margin-right: 3px; /* Spacing between tabs */
+}
+
+.nav-tabs .nav-link.active {
+  border-top: 2px solid #007bff;
+  color: #007bff; /* Blue text for active tab */
+  background-color: #ffffff; /* White background for active tab */
+}
+
+.nav-tabs .nav-link:hover {
+  background-color: #e0e0e0; /* Hover background color */
+  color: #0056b3; /* Darker blue text on hover */
+}
+
+/* Source-specific tab styling with improved contrast */
+.nav-tabs .nav-link[data-source="arxiv"] {
+  color: #ffffff;
+  background-color: #B31B1B;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.3); /* Text shadow for better readability */
+  font-weight: 600;
+}
+
+.nav-tabs .nav-link[data-source="wikipedia"] {
+  color: #ffffff;
+  background-color: #2a4b8d;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.3);
+  font-weight: 600;
+}
+
+.nav-tabs .nav-link[data-source="newsapi"] {
+  color: #000000; /* Black text for better contrast on orange */
+  background-color: #FF6B00;
+  font-weight: 600;
+}
+
+.nav-tabs .nav-link[data-source="github"] {
+  color: #ffffff;
+  background-color: #24292E;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.3);
+  font-weight: 600;
+}
+
+.nav-tabs .nav-link[data-source="web"] {
+  color: #ffffff;
+  background-color: #0078D7;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.3);
+  font-weight: 600;
+}
+
+.nav-tabs .nav-link[data-source="duckduckgo"] {
+  color: #ffffff;
+  background-color: #DE5833;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.3);
+  font-weight: 600;
+}
+
+/* Active source-specific tabs */
+.nav-tabs .nav-link[data-source].active {
+  color: #ffffff;
+  font-weight: 700;
+  border-bottom: none;
+  box-shadow: 0 -2px 5px rgba(0,0,0,0.1); /* Add shadow to make active tab stand out */
+  border-bottom: 2px solid rgba(255,255,255,0.5); /* Add subtle border */
+  filter: brightness(110%); /* Make active tab slightly brighter */
+}
+
+/* Different styling for orange background */
+.nav-tabs .nav-link[data-source="newsapi"].active {
+  color: #000000;
+  font-weight: 700;
+  border-bottom: 2px solid rgba(0,0,0,0.2);
+}
+
+/* Hover effect for source tabs */
+.nav-tabs .nav-link[data-source]:hover {
+  filter: brightness(115%);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 5px rgba(0,0,0,0.2);
+}
+
+/* Detail View */
+pre {
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  padding: 1rem;
+}
+
+/* Footer */
+footer {
+  border-top: 1px solid #eee;
+  margin-top: 3rem;
+}
+
+/* Utilities */
+.text-truncate-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+/* Mobile Responsive */
+@media (max-width: 767.98px) {
+  .container {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  
+  .card-columns {
+    column-count: 1;
+  }
+}

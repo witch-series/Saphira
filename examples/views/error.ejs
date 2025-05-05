@@ -1,0 +1,19 @@
+<%- include('partials/header', { title: 'Error' }); %>
+
+<div class="alert alert-danger">
+  <h4 class="alert-heading">An error has occurred</h4>
+  <p><%= message %></p>
+  
+  <% if (error && error.stack) { %>
+    <details>
+      <summary>Detailed information</summary>
+      <pre class="mt-3 p-3 bg-light"><%= error.stack %></pre>
+    </details>
+  <% } %>
+</div>
+
+<div class="mt-4">
+  <a href="/" class="btn btn-primary">Return to Home</a>
+</div>
+
+<%- include('partials/footer'); %>

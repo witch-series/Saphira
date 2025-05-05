@@ -1,0 +1,93 @@
+<%- contentFor('body') %>
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-12">
+      <h1>DuckDuckGo Search</h1>
+      <p class="lead">Search the web and view results through DuckDuckGo</p>
+      
+      <form action="/search" method="GET" class="mb-4">
+        <div class="input-group mb-3">
+          <input type="text" class="form-control form-control-lg" name="q" placeholder="Enter your search query..." value="<%= query || '' %>" required>
+          <button class="btn btn-primary" type="submit">Search</button>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="saveToKnowledge" id="saveToKnowledge" <%= saveToKnowledge ? 'checked' : '' %>>
+          <label class="form-check-label" for="saveToKnowledge">
+            Save results to Knowledge Books
+          </label>
+        </div>
+        <div class="form-group mt-2">
+          <label for="maxResults">Max results:</label>
+          <select class="form-select" name="maxResults" id="maxResults">
+            <option value="5" <%= maxResults == 5 ? 'selected' : '' %>>5</option>
+            <option value="10" <%= maxResults == 10 ? 'selected' : '' %>>10</option>
+            <option value="20" <%= maxResults == 20 ? 'selected' : '' %>>20</option>
+          </select>
+        </div>
+      </form>
+
+      <% if (isLoading) { %>
+        <div class="d-flex justify-content-center">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      <% } %>
+
+      <% if (error) { %>
+        <div class="alert alert-danger">
+          <h4 class="alert-heading">Error</h4>
+          <p><%= error %></p>
+        </div>
+      <% } %>
+
+      <% if (results && results.length > 0) { %>
+        <div class="results-container">
+          <h2>Search Results (<%= results.length %>)</h2>
+          
+          <% if (summary) { %>
+            <div class="card mb-4">
+              <div class="card-header">
+                <h5>AI Summary</h5>
+              </div>
+              <div class="card-body">
+                <%= summary %>
+              </div>
+            </div>
+          <% } %>
+          
+          <div class="list-group mb-4">
+            <% results.forEach((result, idx) => { %>
+              <div class="list-group-item">
+                <div class="d-flex w-100 justify-content-between">
+                  <h5 class="mb-1">
+                    <% if (result.sourceUrl && result.sourceUrl.startsWith('http')) { %>
+                      <a href="<%= result.sourceUrl %>" target="_blank" rel="noopener noreferrer" class="text-primary">
+                        <%= result.title %>
+                      </a>
+                      <small>
+                        <i class="bi bi-box-arrow-up-right ml-1" title="External Link"></i>
+                      </small>
+                    <% } else { %>
+                      <%= result.title %>
+                    <% } %>
+                  </h5>
+                  <small class="text-muted"><%= result.sourceName %></small>
+                </div>
+                <p class="mb-1"><%= result.summary %></p>
+                <small>
+                  <a href="/search/detail/<%= idx %>" class="text-decoration-none">View full content</a>
+                </small>
+              </div>
+            <% }) %>
+          </div>
+        </div>
+      <% } else if (query && !isLoading) { %>
+        <div class="alert alert-info">
+          <h4 class="alert-heading">No results found</h4>
+          <p>Your search for "<%= query %>" did not return any results. Please try another search term.</p>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>

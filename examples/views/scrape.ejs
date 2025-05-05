@@ -1,0 +1,111 @@
+<%- include('partials/header') %>
+
+<div class="container mt-4">
+  <h1 class="mb-4">Content Scraper</h1>
+  <p class="lead">Extract content from top search results for your query</p>
+  
+  <div class="card mb-4">
+    <div class="card-body">
+      <form id="scrapeForm" method="GET" action="/search/scrape">
+        <div class="form-group mb-3">
+          <label for="query">Search Query</label>
+          <input type="text" class="form-control" id="query" name="q" value="<%= query %>" required>
+        </div>
+        
+        <div class="form-group mb-3">
+          <label for="maxResults">Max Results</label>
+          <select class="form-control" id="maxResults" name="maxResults">
+            <option value="3">3 results</option>
+            <option value="5" selected>5 results</option>
+            <option value="10">10 results</option>
+            <option value="15">15 results</option>
+          </select>
+        </div>
+        
+        <div class="form-check mb-3">
+          <input type="checkbox" class="form-check-input" id="useCache" name="useCache" checked>
+          <label class="form-check-label" for="useCache">Use cached results if available</label>
+        </div>
+        
+        <div class="form-check mb-3">
+          <input type="checkbox" class="form-check-input" id="saveToKnowledge" name="saveToKnowledge">
+          <label class="form-check-label" for="saveToKnowledge">Save results to Knowledge Books</label>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Scrape Content</button>
+      </form>
+    </div>
+  </div>
+  
+  <% if (typeof error !== 'undefined' && error) { %>
+    <div class="alert alert-danger">
+      <%= error %>
+    </div>
+  <% } %>
+  
+  <% if (typeof results !== 'undefined' && results && results.length > 0) { %>
+    <h2 class="mb-3">Scraped Results</h2>
+    
+    <% if (typeof summary !== 'undefined' && summary) { %>
+      <div class="card mb-4">
+        <div class="card-header">
+          <h3 class="card-title">Summary</h3>
+        </div>
+        <div class="card-body">
+          <p><%= summary %></p>
+        </div>
+      </div>
+    <% } %>
+    
+    <div class="list-group mb-4">
+      <% results.forEach((result, index) => { %>
+        <div class="list-group-item list-group-item-action flex-column align-items-start">
+          <div class="d-flex w-100 justify-content-between">
+            <h5 class="mb-1">
+              <a href="<%= result.sourceUrl %>" target="_blank" rel="noopener noreferrer">
+                <%= result.title %>
+              </a>
+            </h5>
+            <small class="text-muted"><%= result.domain %></small>
+          </div>
+          
+          <p class="mb-1"><%= result.summary %></p>
+          
+          <div class="mt-2">
+            <a href="/search/detail/<%= index %>" class="btn btn-sm btn-info">
+              View Details
+            </a>
+            
+            <% if (!result.saved) { %>
+              <form method="POST" action="/search/save" class="d-inline">
+                <input type="hidden" name="index" value="<%= index %>">
+                <button type="submit" class="btn btn-sm btn-success">
+                  Save to Knowledge Books
+                </button>
+              </form>
+            <% } else { %>
+              <span class="badge bg-success">Saved</span>
+            <% } %>
+          </div>
+        </div>
+      <% }); %>
+    </div>
+  <% } else if (typeof isLoading === 'undefined' || !isLoading) { %>
+    <% if (query) { %>
+      <div class="alert alert-info">
+        No results found. Try a different query.
+      </div>
+    <% } %>
+  <% } %>
+  
+  <% if (typeof isLoading !== 'undefined' && isLoading) { %>
+    <div class="text-center my-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p class="mt-2">Scraping content from search results...</p>
+    </div>
+  <% } %>
+</div>
+
+<%- include('partials/footer') %>

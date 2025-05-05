@@ -1,0 +1,48 @@
+<!-- Page content footer -->
+<div class="mt-5 border-top pt-4">
+  <div class="text-muted">
+    <small>Data is automatically collected and updated regularly. We cannot guarantee the accuracy of the information.</small>
+  </div>
+</div>
+</div> <!-- container end -->
+  
+  <!-- Footer -->
+  <footer class="footer mt-5 py-3 bg-light">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6">
+          <p class="text-muted">&copy; 2025 Saphira Viewer - Knowledge Collection System</p>
+        </div>
+        <div class="col-md-6 text-end">
+          <p class="text-muted">Version 1.0.0</p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- JavaScript Bundle with Popper -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Optional JavaScript -->
+  <script>
+    // Real-time search filtering
+    document.addEventListener('DOMContentLoaded', function() {
+      const searchInput = document.getElementById('searchInput');
+      if (searchInput) {
+        searchInput.addEventListener('input', function() {
+          const query = this.value.toLowerCase();
+          const items = document.querySelectorAll('.searchable-item');
+          
+          items.forEach(item => {
+            const text = item.textContent.toLowerCase();
+            if (text.includes(query)) {
+              item.style.display = '';
+            } else {
+              item.style.display = 'none';
+            }
+          });
+        });
+      }
+    });
+  </script>
+</body>
+</html>

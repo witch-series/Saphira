@@ -1,0 +1,78 @@
+<%- contentFor('body') %>
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-12">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="/">Home</a></li>
+          <li class="breadcrumb-item"><a href="/search<%= query ? '?q=' + encodeURIComponent(query) : '' %>">Search Results</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Detail</li>
+        </ol>
+      </nav>
+      
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h2><%= result.title %></h2>
+          <span class="badge bg-secondary"><%= result.sourceName %></span>
+        </div>
+        <div class="card-body">
+          <p class="lead"><%= result.summary %></p>
+          
+          <hr>
+          
+          <div class="content-area mt-4">
+            <h3>Full Content</h3>
+            <div class="content-wrapper p-3 border rounded">
+              <% if (result.content) { %>
+                <p><%= result.content %></p>
+              <% } else { %>
+                <p class="text-muted">No content available.</p>
+              <% } %>
+            </div>
+          </div>
+          
+          <% if (result.tags && result.tags.length > 0) { %>
+            <div class="tags-section mt-4">
+              <h4>Tags</h4>
+              <div>
+                <% result.tags.forEach(tag => { %>
+                  <a href="/tag/<%= tag %>" class="badge bg-primary text-decoration-none me-1"><%= tag %></a>
+                <% }) %>
+              </div>
+            </div>
+          <% } %>
+        </div>
+        <div class="card-footer">
+          <div class="d-flex justify-content-between flex-wrap">
+            <div>
+              <% if (result.sourceUrl && result.sourceUrl.startsWith('http')) { %>
+                <a href="<%= result.sourceUrl %>" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary me-2 mb-2">
+                  <i class="bi bi-box-arrow-up-right"></i> Visit Original Site
+                </a>
+              <% } else { %>
+                <span class="text-muted me-2 mb-2">Original source URL not available</span>
+              <% } %>
+            </div>
+            
+            <div class="d-flex">
+              <% if (result.saved) { %>
+                <% if (savedId) { %>
+                  <a href="/search/delete/<%= savedId %>" class="btn btn-outline-danger me-2 mb-2" 
+                     onclick="return confirm('Are you sure you want to delete this search result from the knowledge book?')">
+                    <i class="bi bi-trash"></i> Delete
+                  </a>
+                <% } %>
+                <span class="text-success align-self-center mb-2">✓ Saved to Knowledge Book</span>
+              <% } else { %>
+                <form action="/search/save" method="POST">
+                  <input type="hidden" name="index" value="<%= index %>">
+                  <button type="submit" class="btn btn-success me-2 mb-2">Save to Knowledge Book</button>
+                </form>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

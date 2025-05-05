@@ -1,0 +1,140 @@
+<%- include('partials/header', { title }); %>
+
+<div class="mb-4">
+  <div class="d-flex justify-content-between align-items-center">
+    <h2><%= fileName %></h2>
+    <a href="/" class="btn btn-outline-primary">Back</a>
+  </div>
+</div>
+
+<!-- Search form -->
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+    <form class="d-flex">
+      <input type="text" class="form-control" name="q" value="<%= query %>" placeholder="Search by title, content, or tags...">
+      <button class="btn btn-primary" type="submit">Search</button>
+    </form>
+  </div>
+</div>
+
+<% if (fileId === 'enhanced-collection') { %>
+  <% if (Object.keys(data).length === 0) { %>
+    <div class="alert alert-info">
+      No data matched the search criteria.
+    </div>
+  <% } else { %>
+    <!-- Display by source -->
+    <ul class="nav nav-tabs mb-4" id="sourceTabs" role="tablist">
+      <% sourceTypes.forEach((source, index) => { %>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link <%= index === 0 ? 'active' : '' %>" 
+                  id="<%= source %>-tab" 
+                  data-bs-toggle="tab" 
+                  data-bs-target="#<%= source %>" 
+                  type="button" 
+                  role="tab">
+            <%= source %> (<%= data[source].length %>)
+          </button>
+        </li>
+      <% }); %>
+    </ul>
+    
+    <div class="tab-content">
+      <% sourceTypes.forEach((source, index) => { %>
+        <div class="tab-pane fade <%= index === 0 ? 'show active' : '' %>" 
+             id="<%= source %>" 
+             role="tabpanel">
+          
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Title</th>
+                  <th>Tags</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% data[source].forEach((item, idx) => { %>
+                  <tr>
+                    <td><%= idx + 1 %></td>
+                    <td><%= item.title %></td>
+                    <td>
+                      <% if (item.tags && item.tags.length > 0) { %>
+                        <% item.tags.slice(0, 3).forEach(tag => { %>
+                          <span class="badge bg-secondary me-1"><%= tag %></span>
+                        <% }); %>
+                        <% if (item.tags.length > 3) { %>
+                          <span class="badge bg-light text-dark">+<%= item.tags.length - 3 %></span>
+                        <% } %>
+                      <% } else { %>
+                        <span class="text-muted">No tags</span>
+                      <% } %>
+                    </td>
+                    <td>
+                      <a href="/detail/<%= fileId %>/<%= source %>/<%= idx %>" class="btn btn-sm btn-outline-primary">Details</a>
+                    </td>
+                  </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      <% }); %>
+    </div>
+  <% } %>
+<% } else if (fileId === 'api-collection') { %>
+  <% if (data.length === 0) { %>
+    <div class="alert alert-info">
+      No data matched the search criteria.
+    </div>
+  <% } else { %>
+    <div class="table-responsive">
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Title</th>
+            <th>Source</th>
+            <th>Tags</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% data.forEach((item, idx) => { %>
+            <tr>
+              <td><%= idx + 1 %></td>
+              <td><%= item.title %></td>
+              <td><%= item.sourceName %></td>
+              <td>
+                <% if (item.tags && item.tags.length > 0) { %>
+                  <% item.tags.slice(0, 3).forEach(tag => { %>
+                    <span class="badge bg-secondary me-1"><%= tag %></span>
+                  <% }); %>
+                  <% if (item.tags.length > 3) { %>
+                    <span class="badge bg-light text-dark">+<%= item.tags.length - 3 %></span>
+                  <% } %>
+                <% } else { %>
+                  <span class="text-muted">No tags</span>
+                <% } %>
+              </td>
+              <td>
+                <a href="/detail/<%= fileId %>/all/<%= idx %>" class="btn btn-sm btn-outline-primary">Details</a>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+<% } else { %>
+  <div class="card">
+    <div class="card-header">Data Structure</div>
+    <div class="card-body">
+      <pre class="border p-3"><%= JSON.stringify(data, null, 2) %></pre>
+    </div>
+  </div>
+<% } %>
+
+<%- include('partials/footer'); %>
