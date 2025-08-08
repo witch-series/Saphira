@@ -1,41 +1,85 @@
 # Saphira
 
-AI system for gathering and updating domain knowledge from diverse sources, with a powerful GUI viewer for exploration.
+AI-powered multi-source search and knowledge collection system with intelligent URL tracking.
 
 ## Project Overview
 
-Saphira is an intelligent knowledge collection system that automatically collects, organizes, and presents information based on user interests. The system offers both a GUI viewer for interactive exploration and API interfaces for programmatic integration.
+Saphira is an intelligent search system that aggregates information from multiple sources (Wikipedia, OpenLibrary, Google, arXiv) to collect, organize, and present search results in a comprehensive knowledge book format. The system features intelligent URL tracking to avoid duplicate content collection and continuously expand your knowledge base.
+
+## User Workflow
+
+The Saphira system follows a streamlined workflow designed for continuous knowledge accumulation:
+
+### 1. Search Execution
+- Navigate to the Multi-Source Search page
+- Enter your search query
+- Select desired sources (Wikipedia, OpenLibrary, Google, arXiv)
+- Adjust search settings (max results per source)
+- Execute search to collect information
+
+### 2. Knowledge Book Creation
+- Search results are automatically compiled into a Knowledge Book
+- Each Knowledge Book is saved as a JSON file in `user/data/` folder
+- Filename format: `knowledge-book-{query}-{timestamp}.json`
+- Contains structured data with source attribution and metadata
+
+### 3. URL Tracking
+- All searched URLs are recorded in `user/url-list.json`
+- Prevents duplicate content collection in future searches
+- Enables intelligent content discovery by avoiding already-processed sources
+
+### 4. Knowledge Collection Management
+- After search completion, return to Home screen
+- View complete Knowledge Collection (list of all Knowledge Books)
+- Browse your accumulated knowledge library with easy access
+
+### 5. Knowledge Book Inspection
+- Click on any Knowledge Book name to view its contents
+- Examine search results organized by source
+- Review collected information with full metadata
+
+### 6. Continuous Learning
+- Subsequent searches automatically reference `user/url-list.json`
+- System intelligently skips previously processed URLs
+- Focus collection efforts on new, unexplored information sources
+- Continuously expand knowledge base without redundancy
+
+This workflow ensures efficient knowledge accumulation while maximizing the discovery of new information sources.
+
+## Architecture
+
+### Core System (`src/`)
+- **`src/core/`**: DuckDuckGo search engine and caching
+- **`src/api/`**: RESTful API routes and business logic  
+- **`src/models/`**: Data models for knowledge books
+- **`src/utils/`**: Configuration and utility functions
+
+### User Interface (`ui/`)
+- **`ui/app.js`**: Main web application server
+- **`ui/views/`**: Customizable EJS templates
+- **`ui/public/`**: Static assets (CSS, JS, images)
 
 ## Key Features
 
-1. **Interest-Based Automatic Collection**
-   - User interest tag registration
-   - Periodic and on-demand information gathering
-   - Multiple processing levels (basic, enhanced, full)
+1. **DuckDuckGo Search Integration**
+   - Fast and privacy-focused search
+   - Result caching for performance
+   - Automatic knowledge book creation
 
-2. **Multi-source Collection**
-   - Scientific papers (arXiv)
-   - Encyclopedia articles (Wikipedia)
-   - Current news (NewsAPI)
-   - Web search results (DuckDuckGo)
-   - Code repositories (GitHub)
-   - General web content
+2. **Knowledge Book System**
+   - Search results organized by query and timestamp
+   - Clean filename format: `{keyword}-{date}.json`
+   - Persistent storage with metadata
 
-3. **Knowledge Processing**
-   - Automatic summarization
-   - Content tagging and categorization
-   - Metadata enhancement
+3. **Customizable UI**
+   - Responsive web interface built with Bootstrap
+   - Tag-based filtering and organization
+   - Easy-to-customize templates and styling
 
-4. **GUI Viewer**
-   - Interactive knowledge exploration
-   - Tag-based filtering and search
-   - Custom tag color management
-   - Collection history tracking
-
-5. **API Access**
-   - Programmatic collection triggering
-   - Query and search capabilities
-   - Knowledge book management
+4. **API Management**
+   - Built-in API key management
+   - Future-ready for additional search engines
+   - RESTful endpoints for programmatic access
 
 ## Getting Started
 
@@ -49,50 +93,74 @@ cd saphira
 # Install dependencies
 npm install
 ```
+```
 
-### Setting Up API Keys
-
-Saphira can use various APIs to collect information. Some APIs require authentication keys:
-
-1. **API Key Configuration**:
-   - Create a `user/api-keys.json` file (this directory is gitignored for security)
-   - You can use the following template:
-   ```json
-   {
-     "newsApiKey": "your_news_api_key_here",
-     "githubApiKey": "your_github_token_here",
-     "otherApiKeys": {
-       "_comment": "Section for future API keys"
-     }
-   }
-   ```
-   - Keys can also be managed through the GUI viewer once running
-   - Alternatively, you can set environment variables: `NEWS_API_KEY`, `GITHUB_API_KEY`
-
-2. **Supported APIs**:
-   - **NewsAPI**: Requires API key (get from [newsapi.org](https://newsapi.org/register))
-   - **GitHub API**: Optional token for higher rate limits
-   - **arXiv API**: No key required
-   - **Wikipedia API**: No key required
-   - **DuckDuckGo**: No key required
-
-### Running the GUI Viewer
+### Quick Start
 
 ```bash
-# Start the GUI viewer
-node examples/gui-viewer-app.js
+# Start the UI application
+node ui/app.js
 
-# Access the viewer in your browser
+# Access the interface in your browser
 # Default URL: http://localhost:3333
 ```
 
-### Running Tests
+### API Key Configuration
 
-The project includes test files to verify the API collection functionality:
+Saphira includes built-in API key management for future extensions:
 
-```bash
-# Run basic API collection test
-node test/core/apiCollection.test.js
+1. **Through the Web Interface**:
+   - Navigate to http://localhost:3333/api-keys
+   - Update keys through the management interface
+   - Keys are automatically saved to `user/api-keys.json`
+
+2. **Manual Configuration**:
+   ```json
+   {
+     "newsApiKey": "your_future_news_api_key",
+     "githubApiKey": "your_future_github_token",
+     "otherApiKeys": {
+       "_comment": "Reserved for future API integrations"
+     }
+   }
+   ```
+
+### Usage
+
+1. **Search**: Enter queries to search DuckDuckGo and create knowledge books
+2. **Browse**: View saved search collections on the home page
+3. **Organize**: Use tags to filter and organize your knowledge books
+4. **Customize**: Modify `ui/views/` templates and `ui/public/` assets
+
+## Development
+
+### Project Structure
+
+```
+saphira/
+├── src/                    # Core search system
+│   ├── api/               # API routes and business logic
+│   ├── core/              # Search engine and services
+│   ├── models/            # Data models
+│   └── utils/             # Configuration and utilities
+├── ui/                    # Customizable user interface
+│   ├── app.js            # Main web server
+│   ├── views/            # EJS templates (customize here)
+│   └── public/           # Static assets (customize here)
+├── user/                  # User data (auto-created)
+│   ├── api-keys.json     # API configuration
+│   └── data/             # Knowledge books storage
+└── README.md
+```
+
+### Customization
+
+The UI layer is designed for easy customization:
+
+- **Templates**: Modify `ui/views/*.ejs` files for layout changes
+- **Styling**: Update `ui/public/css/style.css` for visual customization  
+- **Functionality**: Extend `ui/app.js` for additional features
+- **API**: Add new routes in `src/api/` for custom endpoints
 
 # Run enhanced collection test (uses all available APIs)
 node test/core/enhancedApiCollection.test.js

@@ -1,0 +1,219 @@
+<%- include('partials/header', { title: 'Multi-Source Search' }); %>
+
+<div class="mb-4">
+  <div class="d-flex justify-content-between align-items-center">
+    <h2>Multi-Source Search</h2>
+    <a href="/" class="btn btn-outline-primary">Back</a>
+  </div>
+  <p class="lead">Search across multiple sources including Wikipedia, OpenLibrary, Google, and arXiv simultaneously.</p>
+  
+  <!-- Help information -->
+  <div class="alert alert-info">
+    <h5><i class="bi bi-info-circle me-2"></i>About Multi-Source Search</h5>
+    <p>This page allows you to search across multiple sources simultaneously. Follow these steps:</p>
+    <ol>
+      <li>Enter your search query</li>
+      <li>Select data sources (you can select multiple)</li>
+      <li>Adjust search settings</li>
+      <li>Click the "Search Now" button</li>
+    </ol>
+    <p class="mb-0">Search results will be displayed with source tags for easy identification.</p>
+  </div>
+</div>
+
+<% if (typeof message !== 'undefined' && message) { %>
+  <div class="alert alert-info alert-dismissible fade show" role="alert">
+    <%= message %>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+<% } %>
+
+<% if (typeof status !== 'undefined' && status) { %>
+  <div class="card shadow-sm mb-4" id="collection-status-card">
+    <div class="card-header bg-info text-white">
+      <h3>Search Status</h3>
+    </div>
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4>Running: <span id="status-running"><%= typeof status !== 'undefined' && status ? (status.running ? 'Yes' : 'No') : 'No' %></span></h4>
+        <div id="loading-spinner" class="<%= typeof status !== 'undefined' && status && status.running ? '' : 'd-none' %>">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      </div>
+      
+      <div id="collection-progress-container" class="<%= typeof status !== 'undefined' && status && status.running ? '' : 'd-none' %>">
+        <div class="progress mb-3">
+          <div class="progress-bar progress-bar-striped progress-bar-animated" 
+               role="progressbar" 
+               id="progress-bar"
+               style="width: 0%;" 
+               aria-valuenow="0" 
+               aria-valuemin="0" 
+               aria-valuemax="100">
+            <span id="progress-text">0%</span>
+          </div>
+        </div>
+        <p><strong>Current Source:</strong> <span id="current-source"><%= typeof status !== 'undefined' && status && status.currentSource ? status.currentSource : 'Initializing...' %></span></p>
+        <p><strong>Items Collected:</strong> <span id="items-collected"><%= typeof status !== 'undefined' && status && status.itemsCollected ? status.itemsCollected : 0 %></span></p>
+        <p><strong>Start Time:</strong> <span id="start-time"><%= typeof status !== 'undefined' && status && status.startTime ? new Date(status.startTime).toLocaleString() : 'Unknown' %></span></p>
+        
+        <form action="/collection/stop" method="POST" class="mt-3">
+          <button type="submit" class="btn btn-danger">Stop Search</button>
+        </form>
+      </div>
+      
+      <div id="collection-complete-container" class="<%= typeof status !== 'undefined' && status && !status.running && status.progress === 100 ? '' : 'd-none' %>">
+        <div class="alert alert-success">
+          <i class="bi bi-check-circle-fill me-2"></i> Search completed successfully!
+          <a href="/collection/search-results" class="btn btn-sm btn-primary ms-3">View Results</a>
+        </div>
+      </div>
+    </div>
+  </div>
+<% } %>
+
+<div class="card shadow-sm mb-4">
+  <div class="card-header">
+    <h3>Multi-Source Search</h3>
+  </div>
+  <div class="card-body">
+    <form action="/collection/search" method="POST" id="collection-form">
+      <div class="mb-4">
+        <h4>Search Query</h4>
+        <p class="text-muted">Enter your search query:</p>
+        
+        <div class="input-group mb-3">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input type="text" class="form-control" name="query" placeholder="Enter your search query..." id="searchQueryInput" required>
+        </div>
+      </div>
+      
+      <div class="mb-4">
+        <h4>Search Sources</h4>
+        <p class="text-muted">Select sources to search:</p>
+        
+        <div class="row mb-3">
+          <div class="col-md-3">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="sources" value="wikipedia" id="search-src-wikipedia" checked>
+              <label class="form-check-label" for="search-src-wikipedia">
+                <span class="badge badge-wikipedia me-1">Wikipedia</span> Encyclopedia
+              </label>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="sources" value="openlibrary" id="search-src-openlibrary" checked>
+              <label class="form-check-label" for="search-src-openlibrary">
+                <span class="badge badge-openlibrary me-1">OpenLibrary</span> Books
+              </label>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="sources" value="google" id="search-src-google" checked>
+              <label class="form-check-label" for="search-src-google">
+                <span class="badge badge-google me-1">Google</span> Web Search
+              </label>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="sources" value="arxiv" id="search-src-arxiv" checked>
+              <label class="form-check-label" for="search-src-arxiv">
+                <span class="badge badge-arxiv me-1">arXiv</span> Academic Papers
+              </label>
+            </div>
+          </div>
+        </div>
+        
+        <div class="row mb-3">
+          <div class="col-md-4">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="sources" value="github" id="search-src-github">
+              <label class="form-check-label" for="search-src-github">
+                <span class="badge badge-github me-1">GitHub</span> Code & Repos
+              </label>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="sources" value="mdn" id="search-src-mdn">
+              <label class="form-check-label" for="search-src-mdn">
+                <span class="badge badge-mdn me-1">MDN</span> Dev Docs
+              </label>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="sources" value="stackoverflow" id="search-src-stackoverflow">
+              <label class="form-check-label" for="search-src-stackoverflow">
+                <span class="badge badge-stackoverflow me-1">Stack Overflow</span> Q&A
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mb-4">
+        <h4>Search Settings</h4>
+        
+        <div class="mb-3">
+          <label for="maxResults" class="form-label">Max Results: <span id="maxResultsDisplay">15</span></label>
+          <input type="range" class="form-range" id="maxResults" name="maxResults" min="5" max="50" value="15">
+          <div class="form-text">Number of results to retrieve from each source. Higher numbers may take longer.</div>
+        </div>
+        
+        <div class="form-check mb-3">
+          <input class="form-check-input" type="checkbox" name="saveToKnowledgeBooks" id="saveToKnowledgeBooks" checked>
+          <label class="form-check-label" for="saveToKnowledgeBooks">
+            Save results as Knowledge Book
+          </label>
+          <div class="form-text">Create a persistent Knowledge Book from search results and display it in the home collection.</div>
+        </div>
+      </div>
+      
+      <button type="submit" class="btn btn-primary btn-lg" id="collection-submit-btn">
+        <i class="bi bi-search"></i> Search Now
+      </button>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const collectionForm = document.getElementById('collection-form');
+    const searchQueryInput = document.getElementById('searchQueryInput');
+    
+    // Form submission handling
+    collectionForm.addEventListener('submit', function(e) {
+      const query = searchQueryInput.value.trim();
+      const selectedSources = document.querySelectorAll('input[name="sources"]:checked');
+      
+      if (!query) {
+        e.preventDefault();
+        alert('Please enter a search query.');
+        return false;
+      }
+      
+      if (selectedSources.length === 0) {
+        e.preventDefault();
+        alert('Please select at least one search source.');
+        return false;
+      }
+      
+      // Show loading state
+      const submitBtn = document.getElementById('collection-submit-btn');
+      submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Searching...';
+      submitBtn.disabled = true;
+    });
+    
+    // Update max results display on range slider change
+    document.getElementById('maxResults').addEventListener('input', function() {
+      document.getElementById('maxResultsDisplay').textContent = this.value;
+    });
+  });
+</script>
+
+<%- include('partials/footer'); %>

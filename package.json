@@ -1,11 +1,37 @@
 {
+  "name": "saphira",
+  "version": "1.0.0",
+  "description": "AI-powered search and knowledge collection system with a customizable web interface",
+  "main": "ui/app.js",
+  "scripts": {
+    "start": "node ui/app.js",
+    "dev": "node ui/app.js",
+    "test": "node test/run-all-tests.js",
+    "test:integration": "node test/search-integration-tests.js",
+    "test:engines": "node test/individual-engine-tests.js",
+    "test:ui": "node test/ui-route-tests.js"
+  },
+  "keywords": [
+    "search",
+    "knowledge",
+    "duckduckgo",
+    "collection",
+    "ai"
+  ],
+  "author": "witch-series",
+  "license": "MIT",
   "dependencies": {
     "axios": "^1.9.0",
     "cheerio": "^1.0.0",
     "ejs": "^3.1.10",
-    "express": "^5.1.0",
+    "express": "^4.18.2",
     "fast-xml-parser": "^5.2.1",
+    "google-sr": "^6.0.0",
     "jsdom": "^26.1.0",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "xml2js": "^0.6.2"
+  },
+  "devDependencies": {
+    "supertest": "^7.1.4"
   }
 }

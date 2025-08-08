@@ -1,0 +1,238 @@
+<%- include('partials/header', { title }); %>
+
+<div class="mb-4">
+  <div class="d-flex justify-content-between align-items-center">
+    <h2><%= fileName %></h2>
+    <a href="/" class="btn btn-outline-primary">
+      <i class="bi bi-arrow-left"></i> Back to Home
+    </a>
+  </div>
+  <p class="text-muted">Total items: <%= totalItems %></p>
+</div>
+
+<% if (items && items.length > 0) { %>
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th style="width: 40px;">#</th>
+          <th>Title</th>
+          <th style="width: 200px;">Tags</th>
+          <th style="width: 150px;">Domain</th>
+          <th style="width: 80px;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% items.forEach((item, index) => { %>
+          <tr>
+            <td><%= index + 1 %></td>
+            <td>
+              <div>
+                <h6 class="mb-1">
+                  <% if (item.title) { %>
+                    <a href="#" class="text-decoration-none" onclick="showDetail('<%= item.id || index %>')">
+                      <%= item.title %>
+                    </a>
+                  <% } else { %>
+                    <a href="#" class="text-decoration-none" onclick="showDetail('<%= item.id || index %>')">
+                      Item <%= index + 1 %>
+                    </a>
+                  <% } %>
+                </h6>
+                <% if (item.summary) { %>
+                  <small class="text-muted">
+                    <%= item.summary.length > 100 ? item.summary.substring(0, 100) + '...' : item.summary %>
+                  </small>
+                <% } %>
+              </div>
+            </td>
+            <td>
+              <% if (item.tags && Array.isArray(item.tags)) { %>
+                <% item.tags.slice(0, 3).forEach(tag => { %>
+                  <% if (tag) { %>
+                    <span class="badge me-1 mb-1 small tag-badge" data-tag="<%= tag.toLowerCase() %>"><%= tag %></span>
+                  <% } %>
+                <% }) %>
+                <% if (item.tags.length > 3) { %>
+                  <small class="text-muted">+<%= item.tags.length - 3 %> more</small>
+                <% } %>
+              <% } %>
+            </td>
+            <td>
+              <% if (item.domain || (item.url && item.url.includes('//'))) { %>
+                <small class="text-muted">
+                  <%= item.domain || (item.url ? new URL(item.url).hostname : '') %>
+                </small>
+              <% } %>
+            </td>
+            <td>
+              <% if (item.sourceUrl || item.url) { %>
+                <a href="<%= item.sourceUrl || item.url %>" target="_blank" class="btn btn-sm btn-outline-primary" title="Open in new tab">
+                  <i class="bi bi-box-arrow-up-right"></i>
+                </a>
+              <% } %>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+<% } else { %>
+  <div class="alert alert-info">
+    <i class="bi bi-info-circle"></i> No items found in this collection.
+  </div>
+<% } %>
+
+<!-- Detail Modal -->
+<div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="detailModalLabel">Item Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="detailContent">
+          <!-- Content will be populated by JavaScript -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <a id="detailUrl" href="#" target="_blank" class="btn btn-primary">
+          <i class="bi bi-box-arrow-up-right"></i> Open in New Tab
+        </a>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Store items data for JavaScript access
+  const itemsData = <%- JSON.stringify(items) %>;
+  
+  // Apply tag colors from localStorage
+  document.addEventListener('DOMContentLoaded', function() {
+    applyTagColors();
+  });
+  
+  function applyTagColors() {
+    // Load saved custom tag colors from localStorage
+    const savedTagColors = JSON.parse(localStorage.getItem('customTagColors') || '{}');
+    
+    // Default system colors
+    const systemColors = {
+      'arxiv': { bg: '#b91d47', text: '#ffffff' },
+      'wikipedia': { bg: '#000000', text: '#ffffff' },
+      'newsapi': { bg: '#007bff', text: '#ffffff' },
+      'duckduckgo': { bg: '#de5833', text: '#ffffff' },
+      'github': { bg: '#24292e', text: '#ffffff' },
+      'web': { bg: '#28a745', text: '#ffffff' },
+      'unknown': { bg: '#6c757d', text: '#ffffff' }
+    };
+    
+    // Apply colors to all tag badges
+    document.querySelectorAll('.tag-badge').forEach(tagElement => {
+      const tagName = tagElement.getAttribute('data-tag');
+      let colors = null;
+      
+      // Check for custom colors first
+      if (savedTagColors[tagName]) {
+        colors = savedTagColors[tagName];
+      } else if (systemColors[tagName]) {
+        colors = systemColors[tagName];
+      } else {
+        // Default gray for unknown tags
+        colors = systemColors['unknown'];
+      }
+      
+      tagElement.style.backgroundColor = colors.bg;
+      tagElement.style.color = colors.text;
+    });
+  }
+  
+  function showDetail(itemId) {
+    // Find the item by ID or index
+    let item = null;
+    
+    if (typeof itemId === 'string' && itemId.length > 10) {
+      // It's an ID
+      item = itemsData.find(i => i.id === itemId);
+    } else {
+      // It's an index
+      const index = parseInt(itemId);
+      item = itemsData[index];
+    }
+    
+    if (!item) {
+      alert('Item not found');
+      return;
+    }
+    
+    // Populate modal with item details
+    document.getElementById('detailModalLabel').textContent = item.title || 'Item Details';
+    
+    const detailContent = document.getElementById('detailContent');
+    detailContent.innerHTML = `
+      <div class="row">
+        <div class="col-12">
+          <h6>Title</h6>
+          <p>${item.title || 'Untitled'}</p>
+        </div>
+        
+        <div class="col-12">
+          <h6>Summary</h6>
+          <p>${item.summary || 'No summary available'}</p>
+        </div>
+        
+        <div class="col-12">
+          <h6>Content</h6>
+          <div style="max-height: 300px; overflow-y: auto; background: #f8f9fa; padding: 10px; border-radius: 5px;">
+            <pre style="white-space: pre-wrap; margin: 0; font-family: inherit;">${item.content || 'No content available'}</pre>
+          </div>
+        </div>
+        
+        <div class="col-md-6">
+          <h6>Source</h6>
+          <p>${item.source || 'Unknown'}</p>
+        </div>
+        
+        <div class="col-md-6">
+          <h6>Domain</h6>
+          <p>${item.domain || (item.url ? new URL(item.url).hostname : 'Unknown')}</p>
+        </div>
+        
+        <div class="col-12">
+          <h6>URL</h6>
+          <p><a href="${item.url || item.sourceUrl || '#'}" target="_blank" class="text-break">${item.url || item.sourceUrl || 'No URL'}</a></p>
+        </div>
+        
+        <div class="col-12">
+          <h6>Tags</h6>
+          <div>
+            ${(item.tags || []).map(tag => `<span class="badge me-1 mb-1 tag-badge" data-tag="${tag.toLowerCase()}">${tag}</span>`).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+    
+    // Set URL for the open button
+    const detailUrl = document.getElementById('detailUrl');
+    if (item.url || item.sourceUrl) {
+      detailUrl.href = item.url || item.sourceUrl;
+      detailUrl.style.display = 'inline-block';
+    } else {
+      detailUrl.style.display = 'none';
+    }
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('detailModal'));
+    modal.show();
+    
+    // Apply tag colors to the modal tags after showing
+    setTimeout(() => {
+      applyTagColors();
+    }, 100);
+  }
+</script>
+
+<%- include('partials/footer'); %>

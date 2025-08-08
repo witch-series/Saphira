@@ -1,0 +1,244 @@
+<%- include('partials/header', { title }); %>
+
+<div class="mb-4">
+  <div class="d-flex justify-content-between align-items-center">
+    <div>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="/">Knowledge Collection</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Knowledge Book</li>
+        </ol>
+      </nav>
+      <h1 class="mb-2"><%= knowledgeBook.title %></h1>
+      <p class="lead text-muted">Search Query: "<%= knowledgeBook.query %>"</p>
+    </div>
+    <div>
+      <a href="/" class="btn btn-outline-primary">
+        <i class="bi bi-arrow-left me-2"></i>Back to Collection
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Knowledge Book Overview -->
+<div class="card mb-4 shadow-sm">
+  <div class="card-header bg-primary text-white">
+    <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Knowledge Book Overview</h5>
+  </div>
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-6">
+        <dl class="row">
+          <dt class="col-sm-4">Created:</dt>
+          <dd class="col-sm-8"><%= new Date(knowledgeBook.created).toLocaleString() %></dd>
+          <dt class="col-sm-4">Total Results:</dt>
+          <dd class="col-sm-8"><%= knowledgeBook.totalResults %></dd>
+          <dt class="col-sm-4">Sources Used:</dt>
+          <dd class="col-sm-8"><%= knowledgeBook.sources.length %></dd>
+          <dt class="col-sm-4">URLs Processed:</dt>
+          <dd class="col-sm-8"><%= knowledgeBook.metadata?.urlsProcessed || 0 %></dd>
+        </dl>
+      </div>
+      <div class="col-md-6">
+        <dl class="row">
+          <dt class="col-sm-4">Search Duration:</dt>
+          <dd class="col-sm-8"><%= knowledgeBook.metadata?.searchDuration || 'Unknown' %></dd>
+          <dt class="col-sm-4">Knowledge Book ID:</dt>
+          <dd class="col-sm-8"><code><%= knowledgeBook.id %></code></dd>
+          <dt class="col-sm-4">Filename:</dt>
+          <dd class="col-sm-8"><code><%= filename %></code></dd>
+        </dl>
+      </div>
+    </div>
+    
+    <!-- Sources Used -->
+    <div class="mt-3">
+      <h6>Sources Used:</h6>
+      <div class="mb-2">
+        <% knowledgeBook.sources.forEach(source => { %>
+          <% switch(source) { 
+             case 'wikipedia': %>
+              <span class="badge badge-wikipedia me-1">Wikipedia</span>
+          <% break; 
+             case 'openlibrary': %>
+              <span class="badge badge-openlibrary me-1">OpenLibrary</span>
+          <% break;
+             case 'google': %>
+              <span class="badge badge-google me-1">Google</span>
+          <% break;
+             case 'arxiv': %>
+              <span class="badge badge-arxiv me-1">arXiv</span>
+          <% break;
+             default: %>
+              <span class="badge bg-secondary me-1"><%= source %></span>
+          <% } %>
+        <% }); %>
+      </div>
+    </div>
+    
+    <!-- Results by Source -->
+    <% if (knowledgeBook.resultsBySources && knowledgeBook.resultsBySources.length > 0) { %>
+      <div class="mt-3">
+        <h6>Results by Source:</h6>
+        <div class="row">
+          <% knowledgeBook.resultsBySources.forEach(sourceInfo => { %>
+            <div class="col-md-3 mb-2">
+              <div class="text-center">
+                <div class="h4 text-primary"><%= sourceInfo.count %></div>
+                <small class="text-muted"><%= sourceInfo.source %></small>
+              </div>
+            </div>
+          <% }); %>
+        </div>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<!-- Search Results by Source -->
+<% if (knowledgeBook.groupedResults && Object.keys(knowledgeBook.groupedResults).length > 0) { %>
+  <% Object.keys(knowledgeBook.groupedResults).forEach(source => { %>
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header">
+        <h5 class="mb-0">
+          <% switch(source) { 
+             case 'Wikipedia': %>
+              <span class="badge badge-wikipedia me-2">Wikipedia</span>
+          <% break; 
+             case 'OpenLibrary': %>
+              <span class="badge badge-openlibrary me-2">OpenLibrary</span>
+          <% break;
+             case 'Google': %>
+              <span class="badge badge-google me-2">Google</span>
+          <% break;
+             case 'arXiv': %>
+              <span class="badge badge-arxiv me-2">arXiv</span>
+          <% break;
+             default: %>
+              <span class="badge bg-secondary me-2"><%= source %></span>
+          <% } %>
+          Results (<%= knowledgeBook.groupedResults[source].length %>)
+        </h5>
+      </div>
+      <div class="card-body">
+        <% knowledgeBook.groupedResults[source].forEach((result, index) => { %>
+          <div class="mb-3 pb-3 <% if (index < knowledgeBook.groupedResults[source].length - 1) { %>border-bottom<% } %>">
+            <div class="d-flex justify-content-between align-items-start">
+              <div class="flex-grow-1">
+                <h6 class="mb-1">
+                  <% if (result.url) { %>
+                    <a href="<%= result.url %>" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
+                      <%= result.title %>
+                      <i class="bi bi-box-arrow-up-right ms-1 small"></i>
+                    </a>
+                  <% } else { %>
+                    <%= result.title %>
+                  <% } %>
+                </h6>
+                
+                <% if (result.description || result.summary) { %>
+                  <p class="mb-2 text-muted"><%= result.description || result.summary %></p>
+                <% } %>
+                
+                <% if (result.content && result.content.length > 0) { %>
+                  <div class="mb-2">
+                    <small class="text-muted">Content Preview:</small>
+                    <p class="small"><%= result.content.substring(0, 200) %><% if (result.content.length > 200) { %>...<% } %></p>
+                  </div>
+                <% } %>
+                
+                <div class="small text-muted">
+                  <% if (result.url) { %>
+                    <i class="bi bi-link-45deg me-1"></i>
+                    <a href="<%= result.url %>" target="_blank" rel="noopener noreferrer" class="text-muted">
+                      <%= new URL(result.url).hostname %>
+                    </a>
+                  <% } %>
+                  
+                  <% if (result.authors && result.authors.length > 0) { %>
+                    <span class="ms-3">
+                      <i class="bi bi-person me-1"></i>
+                      <%= result.authors.slice(0, 2).join(', ') %><% if (result.authors.length > 2) { %> +<%= result.authors.length - 2 %> more<% } %>
+                    </span>
+                  <% } %>
+                  
+                  <% if (result.published || result.publishedDate) { %>
+                    <span class="ms-3">
+                      <i class="bi bi-calendar3 me-1"></i>
+                      <%= result.published || result.publishedDate %>
+                    </span>
+                  <% } %>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+    </div>
+  <% }); %>
+<% } else { %>
+  <div class="card shadow-sm">
+    <div class="card-body text-center py-5">
+      <i class="bi bi-search display-1 text-muted mb-3"></i>
+      <h4 class="text-muted">No Results Found</h4>
+      <p class="text-muted">This Knowledge Book doesn't contain any search results.</p>
+    </div>
+  </div>
+<% } %>
+
+<!-- Actions -->
+<div class="card mt-4 shadow-sm">
+  <div class="card-body">
+    <h6 class="card-title">Actions</h6>
+    <div class="btn-group">
+      <button class="btn btn-outline-info" onclick="exportKnowledgeBook('<%= filename %>')" disabled>
+        <i class="bi bi-download me-2"></i>Export JSON
+      </button>
+      <button class="btn btn-outline-warning" onclick="shareKnowledgeBook('<%= knowledgeBook.id %>')" disabled>
+        <i class="bi bi-share me-2"></i>Share
+      </button>
+      <button class="btn btn-outline-danger" onclick="deleteKnowledgeBook('<%= filename %>', '<%= knowledgeBook.title %>')">
+        <i class="bi bi-trash me-2"></i>Delete
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Knowledge Book actions
+function exportKnowledgeBook(filename) {
+  alert('Export functionality coming soon!');
+}
+
+function shareKnowledgeBook(bookId) {
+  alert('Share functionality coming soon!');
+}
+
+function deleteKnowledgeBook(filename, title) {
+  if (!confirm(`Are you sure you want to delete "${title}"?\n\nThis action cannot be undone.`)) {
+    return;
+  }
+
+  fetch(`/knowledge-book/${encodeURIComponent(filename)}`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert('Knowledge Book deleted successfully');
+      window.location.href = '/?message=' + encodeURIComponent('Knowledge Book deleted successfully');
+    } else {
+      alert('Failed to delete Knowledge Book: ' + (data.message || 'Unknown error'));
+    }
+  })
+  .catch(error => {
+    console.error('Error deleting Knowledge Book:', error);
+    alert('Failed to delete Knowledge Book due to network error');
+  });
+}
+</script>
+
+<%- include('partials/footer'); %>

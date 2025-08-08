@@ -1,0 +1,148 @@
+<%- include('partials/header', { title }); %>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1><%= title %></h1>
+  <div>
+    <a href="/collection" class="btn btn-outline-secondary me-2">
+      <i class="bi bi-arrow-left"></i> Back to Collection
+    </a>
+    <a href="/" class="btn btn-outline-secondary">
+      <i class="bi bi-house"></i> Home
+    </a>
+  </div>
+</div>
+
+<!-- Search Summary -->
+<div class="card mb-4 shadow-sm">
+  <div class="card-body">
+    <div class="alert alert-success">
+      <div class="row align-items-center">
+        <div class="col-md-6">
+          <h5><i class="bi bi-check-circle"></i> Search Complete</h5>
+          <p class="mb-1">Query: <strong>"<%= query %>"</strong></p>
+          <p class="mb-0">Found <strong><%= totalResults %></strong> results in <strong><%= searchTime %>ms</strong></p>
+        </div>
+        <div class="col-md-6">
+          <div class="d-flex flex-wrap">
+            <% sources.forEach(source => { %>
+              <span class="badge badge-<%= source.toLowerCase() %> me-2 mb-2"><%= source %></span>
+            <% }); %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Search Another Query -->
+<div class="card mb-4 shadow-sm">
+  <div class="card-body">
+    <h5>Search Again</h5>
+    <form action="/collection/search" method="POST">
+      <div class="row">
+        <div class="col-md-8">
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="text" class="form-control" name="query" placeholder="Enter new search query..." value="<%= query %>">
+            <button type="submit" class="btn btn-primary">Search</button>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <select class="form-select" name="maxResults">
+            <option value="10">10 results</option>
+            <option value="15" selected>15 results</option>
+            <option value="20">20 results</option>
+          </select>
+        </div>
+      </div>
+      
+      <!-- Source checkboxes (hidden for quick search, use same as previous) -->
+      <% selectedSources.forEach(source => { %>
+        <input type="hidden" name="sources" value="<%= source %>">
+      <% }); %>
+    </form>
+  </div>
+</div>
+
+<!-- Results Section -->
+<div class="card shadow-sm">
+  <div class="card-body">
+    <% if (results && results.length > 0) { %>
+      <div class="row">
+        <% results.forEach((result, index) => { %>
+          <div class="col-md-6 mb-4">
+            <div class="card h-100 border-left-primary">
+              <div class="card-body">
+                <h5 class="card-title">
+                  <% if (result.sourceUrl) { %>
+                    <a href="<%= result.sourceUrl %>" target="_blank" class="text-decoration-none">
+                      <%= result.title %>
+                      <i class="bi bi-box-arrow-up-right ms-1 small"></i>
+                    </a>
+                  <% } else { %>
+                    <%= result.title %>
+                  <% } %>
+                </h5>
+                
+                <% if (result.summary) { %>
+                  <p class="card-text text-muted"><%= result.summary %></p>
+                <% } %>
+                
+                <% if (result.content && result.content.length > 0) { %>
+                  <div class="mb-3">
+                    <h6>Content Preview:</h6>
+                    <p class="small text-muted">
+                      <%= result.content.substring(0, 200) %>
+                      <% if (result.content.length > 200) { %>...
+                        <button class="btn btn-sm btn-link p-0" type="button" data-bs-toggle="collapse" 
+                                data-bs-target="#content-<%= index %>" aria-expanded="false">
+                          Show more
+                        </button>
+                      <% } %>
+                    </p>
+                    <% if (result.content.length > 200) { %>
+                      <div class="collapse" id="content-<%= index %>">
+                        <p class="small text-muted"><%= result.content.substring(200) %></p>
+                      </div>
+                    <% } %>
+                  </div>
+                <% } %>
+                
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <% if (result.tags && result.tags.length > 0) { %>
+                      <% const displayTags = result.tags.filter(tag => tag !== 'search' && tag !== 'duckduckgo'); %>
+                      <% if (displayTags.length > 0) { %>
+                        <% displayTags.slice(0, 3).forEach(tag => { %>
+                          <span class="badge bg-light text-dark me-1"><%= tag %></span>
+                        <% }) %>
+                        <% if (displayTags.length > 3) { %>
+                          <span class="badge bg-light text-dark">+<%= displayTags.length - 3 %></span>
+                        <% } %>
+                      <% } %>
+                    <% } %>
+                  </div>
+                  <small class="text-muted">
+                    <%= result.source %> • <%= new Date(result.date).toLocaleDateString() %>
+                  </small>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+    <% } else { %>
+      <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i> No results found in this collection.
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<style>
+.border-left-primary {
+  border-left: 4px solid #007bff !important;
+}
+</style>
+
+<%- include('partials/footer'); %>
