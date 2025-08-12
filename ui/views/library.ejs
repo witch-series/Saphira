@@ -1,0 +1,381 @@
+<%- include('partials/header', {title: title}) %>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12">
+      <h1 class="mb-4">📚 Saphira Library</h1>
+      <p class="lead">Cross-Knowledge Book Search - Search across all saved data</p>
+    </div>
+  </div>
+
+  <!-- Search Form -->
+  <div class="row mb-4">
+    <div class="col-md-8 offset-md-2">
+      <form method="GET" action="/library" class="search-form">
+        <div class="input-group input-group-lg">
+          <input type="text" 
+                 name="q" 
+                 class="form-control" 
+                 placeholder="Search items across Knowledge Books..." 
+                 value="<%= query %>"
+                 autocomplete="off">
+          <button class="btn btn-primary" type="submit">
+            <i class="bi bi-search"></i> Search
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Filter Display -->
+  <% if (category || source) { %>
+    <div class="row mb-3">
+      <div class="col-md-12">
+        <div class="alert alert-info d-flex align-items-center justify-content-between">
+          <div>
+            <i class="bi bi-funnel"></i> Filtered by: 
+            <% if (category) { %>
+              <span class="badge bg-secondary me-2">Category: <%= category %></span>
+            <% } %>
+            <% if (source) { %>
+              <span class="badge bg-primary me-2">Source: <%= source %></span>
+            <% } %>
+          </div>
+          <a href="/library" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-x"></i> Clear Filters
+          </a>
+        </div>
+      </div>
+    </div>
+  <% } %>
+
+  <% if ((query && query.trim()) || category || source) { %>
+    <!-- Search Results -->
+    <div class="row">
+      <div class="col-md-12">
+        <h3 class="mb-3">
+          <% if (query && query.trim()) { %>
+            Search Results: "<%= query %>" 
+          <% } else if (category) { %>
+            Category: <%= category %>
+          <% } else if (source) { %>
+            Source: <%= source %>
+          <% } %>
+          <span class="badge bg-secondary"><%= totalResults %> items</span>
+        </h3>
+
+        <% if (totalResults === 0) { %>
+          <div class="alert alert-info">
+            <h5>No results found</h5>
+            <p>Please try:</p>
+            <ul>
+              <li>Change search keywords</li>
+              <li>Remove filters</li>
+              <li>Use shorter keywords</li>
+            </ul>
+          </div>
+        <% } else { %>
+          <!-- Results grouped by Knowledge Book (single column display) -->
+          <% Object.keys(groupedResults).forEach(bookTitle => { %>
+            <div class="card mb-4">
+              <div class="card-header">
+                <h5 class="mb-0">
+                  <i class="bi bi-book"></i> <%= bookTitle %>
+                  <span class="badge bg-info"><%= groupedResults[bookTitle].items.length %> items</span>
+                  <% if (groupedResults[bookTitle].keywords) { %>
+                    <small class="text-muted">- <%= groupedResults[bookTitle].keywords %></small>
+                  <% } %>
+                </h5>
+              </div>
+              <div class="card-body">
+                <!-- Changed to single column display -->
+                <% groupedResults[bookTitle].items.forEach((item, itemIndex) => { %>
+                  <div class="search-result-item-list mb-3">
+                    <div class="d-flex align-items-start">
+                      <div class="flex-grow-1">
+                        <h6>
+                          <a href="/library/item/<%= encodeURIComponent(groupedResults[bookTitle].filename) %>/<%= item.originalIndex || itemIndex %>" class="text-decoration-none">
+                            <%= item.title %>
+                          </a>
+                        </h6>
+                        <p class="text-muted mb-2"><%= item.description || item.snippet || '' %></p>
+                        <div class="d-flex flex-wrap align-items-center gap-2">
+                          <small class="text-muted">
+                            <i class="bi bi-globe"></i> 
+                            <a href="/library?source=<%= encodeURIComponent(item.source || '') %>" class="text-decoration-none">
+                              <%= item.source || '' %>
+                            </a>
+                          </small>
+                          <% if (item.url) { %>
+                            <small>
+                              <a href="<%= item.url %>" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
+                                <i class="bi bi-box-arrow-up-right"></i> External Link
+                              </a>
+                            </small>
+                          <% } %>
+                          <% if (item.tags && item.tags.length > 0) { %>
+                            <div class="tags-container">
+                              <% item.tags.forEach(tag => { %>
+                                <a href="/library?category=<%= encodeURIComponent(tag) %>" class="text-decoration-none">
+                                  <span class="badge tag-badge tag-<%= tag.replace(/[^a-zA-Z0-9]/g, '').toLowerCase() %>"><%= tag %></span>
+                                </a>
+                              <% }); %>
+                            </div>
+                          <% } %>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <hr class="my-3">
+                <% }); %>
+              </div>
+            </div>
+          <% }); %>
+
+          <!-- Pagination -->
+          <% if (pagination.total > 1) { %>
+            <nav aria-label="Search results pagination">
+              <ul class="pagination justify-content-center">
+                <% if (pagination.hasPrev) { %>
+                  <li class="page-item">
+                    <a class="page-link" href="/library?q=<%= encodeURIComponent(query) %><% if (category) { %>&category=<%= encodeURIComponent(category) %><% } %><% if (source) { %>&source=<%= encodeURIComponent(source) %><% } %>&page=<%= pagination.prevPage %>">Previous</a>
+                  </li>
+                <% } %>
+                
+                <li class="page-item active">
+                  <span class="page-link"><%= pagination.current %> / <%= pagination.total %></span>
+                </li>
+                
+                <% if (pagination.hasNext) { %>
+                  <li class="page-item">
+                    <a class="page-link" href="/library?q=<%= encodeURIComponent(query) %><% if (category) { %>&category=<%= encodeURIComponent(category) %><% } %><% if (source) { %>&source=<%= encodeURIComponent(source) %><% } %>&page=<%= pagination.nextPage %>">Next</a>
+                  </li>
+                <% } %>
+              </ul>
+            </nav>
+          <% } %>
+        <% } %>
+      </div>
+    </div>
+  <% } else { %>
+    <!-- Statistics and Category List -->
+    <div class="row">
+      <div class="col-md-3">
+        <div class="card">
+          <div class="card-header">
+            <h5><i class="bi bi-bar-chart"></i> Library Statistics</h5>
+          </div>
+          <div class="card-body">
+            <div class="stats-grid">
+              <div class="stat-item">
+                <div class="stat-number"><%= stats.totalItems || 0 %></div>
+                <div class="stat-label">Total Items</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-number"><%= stats.totalKnowledgeBooks || 0 %></div>
+                <div class="stat-label">Knowledge Books</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-3">
+        <div class="card">
+          <div class="card-header">
+            <h5><i class="bi bi-tags"></i> By Category</h5>
+          </div>
+          <div class="card-body">
+            <% if (stats.categoriesDisplay && stats.categoriesDisplay.length > 0) { %>
+              <% stats.categoriesDisplay.slice(0, 10).forEach(category => { %>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <a href="<%= category.url %>" class="text-decoration-none flex-grow-1">
+                    <span class="badge tag-badge <%= category.class %> me-2"><%= category.name %></span>
+                  </a>
+                  <span class="badge bg-secondary"><%= category.count %></span>
+                </div>
+              <% }); %>
+            <% } else { %>
+              <p class="text-muted">No category data</p>
+            <% } %>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-3">
+        <div class="card">
+          <div class="card-header">
+            <h5><i class="bi bi-globe"></i> By Source</h5>
+          </div>
+          <div class="card-body">
+            <% if (stats.sourcesDisplay && stats.sourcesDisplay.length > 0) { %>
+              <% stats.sourcesDisplay.forEach(source => { %>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <a href="<%= source.url %>" class="text-decoration-none">
+                    <span><%= source.name %></span>
+                  </a>
+                  <span class="badge bg-primary"><%= source.count %></span>
+                </div>
+              <% }); %>
+            <% } else { %>
+              <p class="text-muted">No source data</p>
+            <% } %>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-3">
+        <div class="card">
+          <div class="card-header">
+            <h5><i class="bi bi-search"></i> Search Keywords</h5>
+          </div>
+          <div class="card-body">
+            <% if (stats.searchKeywordsDisplay && stats.searchKeywordsDisplay.length > 0) { %>
+              <% stats.searchKeywordsDisplay.slice(0, 8).forEach(keyword => { %>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <a href="<%= keyword.url %>" class="text-decoration-none">
+                    <span class="text-truncate"><%= keyword.name %></span>
+                  </a>
+                  <span class="badge bg-success"><%= keyword.count %></span>
+                </div>
+              <% }); %>
+            <% } else { %>
+              <p class="text-muted">No search history</p>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Items -->
+    <% if (stats.recentItemsDisplay && stats.recentItemsDisplay.length > 0) { %>
+      <div class="row mt-4">
+        <div class="col-md-12">
+          <h4><i class="bi bi-clock"></i> Recent Items</h4>
+          <div class="row">
+            <% stats.recentItemsDisplay.slice(0, 6).forEach(item => { %>
+              <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                  <div class="card-body">
+                    <h6 class="card-title">
+                      <a href="<%= item.url %>" target="_blank"><%= item.title %></a>
+                    </h6>
+                    <p class="card-text small text-muted"><%= item.description || item.snippet || '' %></p>
+                    <div class="d-flex justify-content-between align-items-center">
+                      <small class="text-muted">
+                        <i class="bi bi-book"></i> <%= item.knowledgeBookTitle %>
+                      </small>
+                      <% if (item.tagClasses && item.tagClasses.length > 0) { %>
+                        <div class="tags-container">
+                          <% item.tagClasses.slice(0, 2).forEach(tag => { %>
+                            <a href="<%= tag.url %>" class="text-decoration-none">
+                              <span class="badge tag-badge <%= tag.class %>"><%= tag.name %></span>
+                            </a>
+                          <% }); %>
+                        </div>
+                      <% } %>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            <% }); %>
+          </div>
+        </div>
+      </div>
+    <% } %>
+  <% } %>
+</div>
+
+<style>
+.search-form {
+  margin-bottom: 2rem;
+}
+
+.search-result-item-list {
+  padding: 1rem;
+  border: 1px solid #e9ecef;
+  border-radius: 0.375rem;
+  background-color: #f8f9fa;
+}
+
+.search-result-item-list h6 {
+  margin-bottom: 0.5rem;
+}
+
+.search-result-item-list h6 a {
+  text-decoration: none;
+  color: #0d6efd;
+}
+
+.search-result-item-list h6 a:hover {
+  text-decoration: underline;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-number {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #0d6efd;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: #6c757d;
+}
+
+.tags-container {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.tag-badge {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  text-decoration: none !important;
+}
+
+/* Colorful tag colors */
+.tag-wikipedia { background-color: #e3f2fd; color: #1976d2; }
+.tag-openlibrary { background-color: #f3e5f5; color: #7b1fa2; }
+.tag-google { background-color: #fff3e0; color: #f57c00; }
+.tag-arxiv { background-color: #e8f5e8; color: #388e3c; }
+.tag-github { background-color: #f5f5f5; color: #424242; }
+.tag-mdn { background-color: #e1f5fe; color: #0277bd; }
+.tag-stackoverflow { background-color: #fff8e1; color: #f9a825; }
+.tag-mock { background-color: #fce4ec; color: #c2185b; }
+
+/* General color palette */
+.tag-machine, .tag-learning { background-color: #e8f5e8; color: #2e7d32; }
+.tag-python, .tag-programming { background-color: #fff3c4; color: #f57f17; }
+.tag-data, .tag-science { background-color: #e3f2fd; color: #1565c0; }
+.tag-web, .tag-development { background-color: #fce4ec; color: #ad1457; }
+.tag-research, .tag-paper { background-color: #f3e5f5; color: #6a1b9a; }
+.tag-tutorial, .tag-guide { background-color: #e0f2f1; color: #00695c; }
+.tag-documentation { background-color: #fff8e1; color: #ef6c00; }
+.tag-tool, .tag-software { background-color: #f1f8e9; color: #558b2f; }
+.tag-api, .tag-library { background-color: #e8eaf6; color: #3f51b5; }
+.tag-framework { background-color: #ffeaa7; color: #d63031; }
+
+/* Default tags */
+.tag-badge:not([class*="tag-"]) {
+  background-color: #e9ecef;
+  color: #495057;
+}
+
+.gap-2 {
+  gap: 0.5rem !important;
+}
+</style>
+
+<%- include('partials/footer') %>

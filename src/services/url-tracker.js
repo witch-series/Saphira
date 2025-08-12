@@ -192,10 +192,15 @@ class URLTracker {
    */
   async removeURLs(urlsToRemove) {
     if (!urlsToRemove || !Array.isArray(urlsToRemove) || urlsToRemove.length === 0) {
-      return;
+      this.logger.info('📋 No URLs provided for removal');
+      return 0;
     }
 
+    this.logger.info(`🔄 URLTracker: Starting removal process for ${urlsToRemove.length} URLs`);
     await this.initialize();
+
+    const initialSize = this.urlSet.size;
+    this.logger.info(`🔄 URLTracker: Current tracking list has ${initialSize} URLs`);
 
     let removedCount = 0;
     urlsToRemove.forEach(url => {
@@ -205,10 +210,19 @@ class URLTracker {
       }
     });
 
+    this.logger.info(`🔄 URLTracker: Found ${removedCount}/${urlsToRemove.length} URLs in tracking list to remove`);
+
     if (removedCount > 0) {
       // Save updated list
-      await this.save();
-      this.logger.info(`🔄 Removed ${removedCount} URLs from tracking`);
+      try {
+        await this.save();
+        this.logger.info(`✅ URLTracker: Successfully removed ${removedCount} URLs and saved tracking list (${this.urlSet.size} remaining)`);
+      } catch (saveError) {
+        this.logger.error('❌ URLTracker: Failed to save updated tracking list:', saveError);
+        throw saveError;
+      }
+    } else {
+      this.logger.info('📋 URLTracker: No URLs were found in tracking list to remove');
     }
 
     return removedCount;

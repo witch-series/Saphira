@@ -8,12 +8,14 @@
 const fs = require('fs').promises;
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
+const KnowledgeItemRenderer = require('./knowledge-item-renderer');
 
 class KnowledgeBookManager {
   constructor(options = {}) {
     this.logger = options.logger || console;
     this.dataDirectory = options.dataDirectory || path.join(__dirname, '../../user/data');
     this.urlTracker = options.urlTracker;
+    this.renderer = new KnowledgeItemRenderer({ logger: this.logger });
   }
 
   /**
@@ -31,7 +33,7 @@ class KnowledgeBookManager {
 
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const safeQuery = query.replace(/[^a-zA-Z0-9\s-]/g, '').replace(/\s+/g, '-').toLowerCase();
-      const filename = `knowledge-book-${safeQuery}-${timestamp}.json`;
+      const filename = `${safeQuery}-${timestamp}.json`;
       const filepath = path.join(this.dataDirectory, filename);
 
       // Extract URLs from results for tracking
@@ -53,7 +55,7 @@ class KnowledgeBookManager {
         title: `Knowledge Book: ${query}`,
         query: query,
         created: new Date().toISOString(),
-        sources: sources,
+        sources: Object.keys(groupedResults), // Only include sources that have results
         totalResults: results.length,
         resultsBySources: Object.keys(groupedResults).map(source => ({
           source: source,
@@ -128,22 +130,35 @@ class KnowledgeBookManager {
       const knowledgeBooks = [];
 
       for (const file of files) {
-        if (file.startsWith('knowledge-book-') && file.endsWith('.json')) {
+        // Check all JSON files instead of filtering by filename prefix
+        if (file.endsWith('.json')) {
           try {
-            const knowledgeBook = await this.loadKnowledgeBook(file);
-            knowledgeBooks.push({
-              filename: file,
-              id: knowledgeBook.id,
-              title: knowledgeBook.title,
-              query: knowledgeBook.query,
-              created: knowledgeBook.created,
-              totalResults: knowledgeBook.totalResults,
-              sources: knowledgeBook.sources,
-              resultsBySources: knowledgeBook.resultsBySources,
-              urlsProcessed: knowledgeBook.metadata?.urlsProcessed || 0
-            });
+            const filepath = path.join(this.dataDirectory, file);
+            const content = await fs.readFile(filepath, 'utf8');
+            const data = JSON.parse(content);
+            
+            // Check if this is a Knowledge Book by looking for required properties
+            if (data && 
+                typeof data.id === 'string' && 
+                typeof data.title === 'string' && 
+                typeof data.query === 'string' && 
+                Array.isArray(data.results)) {
+              
+              knowledgeBooks.push({
+                filename: file,
+                id: data.id,
+                title: data.title,
+                query: data.query,
+                created: data.created,
+                totalResults: data.totalResults,
+                sources: data.sources,
+                resultsBySources: data.resultsBySources,
+                urlsProcessed: data.metadata?.urlsProcessed || 0
+              });
+            }
           } catch (error) {
-            this.logger.warn(`⚠️ Failed to load Knowledge Book ${file}, skipping`);
+            // Skip invalid JSON files or files that don't match Knowledge Book structure
+            this.logger.debug(`Skipping file ${file}: ${error.message}`);
           }
         }
       }
@@ -180,6 +195,9 @@ class KnowledgeBookManager {
         }
         
         this.logger.info(`📋 Found ${urlsToRemove.length} URLs to remove from tracking`);
+        if (urlsToRemove.length > 0) {
+          this.logger.info(`📋 Sample URLs to remove: ${urlsToRemove.slice(0, 3).join(', ')}${urlsToRemove.length > 3 ? '...' : ''}`);
+        }
       } catch (readError) {
         this.logger.warn(`⚠️ Could not read Knowledge Book for URL cleanup: ${readError.message}`);
       }
@@ -190,11 +208,19 @@ class KnowledgeBookManager {
 
       // Remove URLs from tracking if URLTracker is available
       if (this.urlTracker && urlsToRemove.length > 0) {
+        this.logger.info(`🔄 Starting URL removal process with URLTracker...`);
         try {
-          await this.urlTracker.removeURLs(urlsToRemove);
-          this.logger.info(`🔄 Removed ${urlsToRemove.length} URLs from URL tracking`);
+          const removedCount = await this.urlTracker.removeURLs(urlsToRemove);
+          this.logger.info(`🔄 Successfully removed ${removedCount}/${urlsToRemove.length} URLs from URL tracking`);
         } catch (urlError) {
-          this.logger.warn(`⚠️ Failed to remove URLs from tracking: ${urlError.message}`);
+          this.logger.error(`❌ Failed to remove URLs from tracking: ${urlError.message}`);
+          this.logger.error('URLTracker error details:', urlError);
+        }
+      } else {
+        if (!this.urlTracker) {
+          this.logger.warn(`⚠️ URLTracker not available - URLs will not be removed from tracking`);
+        } else {
+          this.logger.info(`📋 No URLs to remove from tracking`);
         }
       }
 
@@ -258,6 +284,62 @@ class KnowledgeBookManager {
       return stats;
     } catch (error) {
       this.logger.error('❌ Failed to get collection statistics:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Export Knowledge Book as HTML file
+   * @param {string} filename - Knowledge Book filename
+   * @returns {Promise<string>} Path to exported HTML file
+   */
+  async exportToHTML(filename) {
+    try {
+      const knowledgeBook = await this.loadKnowledgeBook(filename);
+      const html = this.renderer.exportToHTML(knowledgeBook);
+      
+      // Generate HTML filename
+      const htmlFilename = filename.replace('.json', '.html');
+      const exportPath = path.join(this.dataDirectory, 'exports');
+      
+      const savedPath = await this.renderer.saveHTMLFile(html, htmlFilename, exportPath);
+      
+      this.logger.info(`Knowledge Book exported to HTML: ${savedPath}`);
+      return savedPath;
+    } catch (error) {
+      this.logger.error('Failed to export Knowledge Book to HTML:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get Knowledge Book data formatted for display with enriched items and formatted stats
+   * @param {string} filename - Knowledge Book filename
+   * @returns {Object} Knowledge Book data with enrichedItems and formattedStats
+   */
+  /**
+   * Get Knowledge Book data formatted for display with enriched items and formatted stats
+   * @param {string} filename - Knowledge Book filename
+   * @returns {Object} Knowledge Book data with enrichedItems and formattedStats
+   */
+  async getKnowledgeBookForDisplay(filename) {
+    try {
+      const knowledgeBook = await this.loadKnowledgeBook(filename);
+      const items = knowledgeBook.results || knowledgeBook.items || [];
+      
+      // Enrich items with tag classes for consistent display
+      const enrichedItems = this.renderer.enrichItemsWithTagClasses(items);
+      
+      // Format stats using the renderer's method
+      const formattedStats = this.renderer.formatStatsForDisplay(knowledgeBook);
+      
+      return {
+        ...knowledgeBook,
+        enrichedItems: enrichedItems,
+        formattedStats: formattedStats
+      };
+    } catch (error) {
+      this.logger.error('Failed to prepare Knowledge Book for display:', error);
       throw error;
     }
   }

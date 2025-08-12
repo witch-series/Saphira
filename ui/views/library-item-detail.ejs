@@ -1,0 +1,261 @@
+<%- include('partials/header', { title }); %>
+
+<div class="mb-4">
+  <div class="d-flex justify-content-between align-items-center">
+    <div>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="/">Knowledge Collection</a></li>
+          <li class="breadcrumb-item"><a href="/library">Library</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Item Detail</li>
+        </ol>
+      </nav>
+      <h1 class="mb-2"><%= item.title %></h1>
+      <p class="lead text-muted">From Knowledge Book: <%= knowledgeBook.title %></p>
+    </div>
+    <div>
+      <a href="/library" class="btn btn-outline-primary me-2">
+        <i class="bi bi-arrow-left me-2"></i>Back to Library
+      </a>
+      <a href="/knowledge-book/<%= encodeURIComponent(filename) %>" class="btn btn-outline-secondary">
+        <i class="bi bi-book me-2"></i>View Source Knowledge Book
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Item Details -->
+<div class="row">
+  <div class="col-lg-8">
+    <!-- Main Content -->
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">
+          <i class="bi bi-file-text me-2"></i>Item Details
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="mb-3">
+          <h6 class="text-muted">Title</h6>
+          <h4><%= item.title %></h4>
+        </div>
+
+        <% if (item.description || item.summary || item.snippet) { %>
+          <div class="mb-3">
+            <h6 class="text-muted">Description</h6>
+            <p class="lead"><%= item.description || item.summary || item.snippet %></p>
+          </div>
+        <% } %>
+
+        <% if (item.content) { %>
+          <div class="mb-3">
+            <h6 class="text-muted">Content</h6>
+            <div class="bg-light p-3 rounded">
+              <pre class="mb-0" style="white-space: pre-wrap; word-wrap: break-word;"><%= item.content %></pre>
+            </div>
+          </div>
+        <% } %>
+
+        <% if (item.url) { %>
+          <div class="mb-3">
+            <h6 class="text-muted">External Link</h6>
+            <a href="<%= item.url %>" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary">
+              <i class="bi bi-box-arrow-up-right me-2"></i>Open Original Source
+            </a>
+            <div class="form-text mt-1">
+              <i class="bi bi-link-45deg me-1"></i>
+              <%= item.url %>
+            </div>
+          </div>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- User Memo Section -->
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header bg-info text-white">
+        <h5 class="mb-0">
+          <i class="bi bi-sticky me-2"></i>Your Notes
+        </h5>
+      </div>
+      <div class="card-body">
+        <form id="memoForm">
+          <div class="mb-3">
+            <label for="userMemo" class="form-label">Personal Notes & Comments</label>
+            <textarea class="form-control" id="userMemo" name="memo" rows="6" 
+                      placeholder="Add your personal notes, thoughts, or comments about this item..."><%= userMemo %></textarea>
+            <div class="form-text">Your notes are saved locally and are private to you.</div>
+          </div>
+          <div class="d-flex justify-content-between">
+            <button type="submit" class="btn btn-info">
+              <i class="bi bi-save me-2"></i>Save Notes
+            </button>
+            <small class="text-muted align-self-center" id="saveStatus"></small>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <div class="col-lg-4">
+    <!-- Source Knowledge Book -->
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header">
+        <h6 class="mb-0">Source Knowledge Book</h6>
+      </div>
+      <div class="card-body">
+        <h6><a href="/knowledge-book/<%= encodeURIComponent(filename) %>" class="text-decoration-none"><%= knowledgeBook.title %></a></h6>
+        <p class="small text-muted mb-2">
+          Created: <%= new Date(knowledgeBook.created).toLocaleDateString() %>
+        </p>
+        <p class="small text-muted">
+          Query: "<%= knowledgeBook.query %>"
+        </p>
+      </div>
+    </div>
+
+    <!-- Metadata -->
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header">
+        <h6 class="mb-0">Metadata</h6>
+      </div>
+      <div class="card-body">
+        <dl class="row small">
+          <dt class="col-sm-6">Item #:</dt>
+          <dd class="col-sm-6"><%= itemIndex + 1 %></dd>
+          
+          <dt class="col-sm-6">Source:</dt>
+          <dd class="col-sm-6">
+            <% if (item.sourceClass) { %>
+              <span class="badge tag-badge <%= item.sourceClass.class %>"><%= item.sourceClass.name %></span>
+            <% } else { %>
+              <span class="badge bg-secondary"><%= item.source || 'Unknown' %></span>
+            <% } %>
+          </dd>
+
+          <% if (item.timestamp) { %>
+            <dt class="col-sm-6">Found:</dt>
+            <dd class="col-sm-6"><%= new Date(item.timestamp).toLocaleDateString() %></dd>
+          <% } %>
+
+          <% if (item.published || item.publishedDate) { %>
+            <dt class="col-sm-6">Published:</dt>
+            <dd class="col-sm-6"><%= item.published || item.publishedDate %></dd>
+          <% } %>
+
+          <% if (item.authors && item.authors.length > 0) { %>
+            <dt class="col-sm-6">Authors:</dt>
+            <dd class="col-sm-6">
+              <%= item.authors.slice(0, 3).join(', ') %>
+              <% if (item.authors.length > 3) { %>
+                <br><small class="text-muted">+<%= item.authors.length - 3 %> more</small>
+              <% } %>
+            </dd>
+          <% } %>
+
+          <% if (item.language) { %>
+            <dt class="col-sm-6">Language:</dt>
+            <dd class="col-sm-6"><%= item.language %></dd>
+          <% } %>
+
+          <% if (item.stars !== undefined) { %>
+            <dt class="col-sm-6">Stars:</dt>
+            <dd class="col-sm-6">⭐ <%= item.stars %></dd>
+          <% } %>
+
+          <% if (item.forks !== undefined) { %>
+            <dt class="col-sm-6">Forks:</dt>
+            <dd class="col-sm-6">🔀 <%= item.forks %></dd>
+          <% } %>
+        </dl>
+      </div>
+    </div>
+
+    <!-- Tags -->
+    <% if (item.tagClasses && item.tagClasses.length > 0) { %>
+      <div class="card mb-4 shadow-sm">
+        <div class="card-header">
+          <h6 class="mb-0">Tags</h6>
+        </div>
+        <div class="card-body">
+          <% item.tagClasses.forEach(tag => { %>
+            <a href="/library?category=<%= encodeURIComponent(tag.name) %>" class="text-decoration-none">
+              <span class="badge tag-badge <%= tag.class %> me-1 mb-1"><%= tag.name %></span>
+            </a>
+          <% }); %>
+        </div>
+      </div>
+    <% } %>
+
+    <!-- Related Actions -->
+    <div class="card shadow-sm">
+      <div class="card-header">
+        <h6 class="mb-0">Related Actions</h6>
+      </div>
+      <div class="card-body">
+        <div class="d-grid gap-2">
+          <a href="/library?source=<%= encodeURIComponent(item.source || '') %>" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-search me-2"></i>More from <%= item.source %>
+          </a>
+          <% if (item.tagClasses && item.tagClasses.length > 0) { %>
+            <a href="/library?category=<%= encodeURIComponent(item.tagClasses[0].name) %>" class="btn btn-outline-secondary btn-sm">
+              <i class="bi bi-tag me-2"></i>Similar Items
+            </a>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Memo saving functionality
+document.getElementById('memoForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  
+  const memo = document.getElementById('userMemo').value;
+  const saveStatus = document.getElementById('saveStatus');
+  
+  try {
+    saveStatus.textContent = 'Saving...';
+    saveStatus.className = 'text-muted align-self-center';
+    
+    const response = await fetch(`/library/item/<%= encodeURIComponent(filename) %>/<%= itemIndex %>/memo`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ memo: memo })
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      saveStatus.textContent = 'Saved successfully!';
+      saveStatus.className = 'text-success align-self-center';
+      setTimeout(() => {
+        saveStatus.textContent = '';
+      }, 3000);
+    } else {
+      saveStatus.textContent = 'Failed to save';
+      saveStatus.className = 'text-danger align-self-center';
+    }
+  } catch (error) {
+    console.error('Error saving memo:', error);
+    saveStatus.textContent = 'Failed to save';
+    saveStatus.className = 'text-danger align-self-center';
+  }
+});
+
+// Auto-save functionality (save after 2 seconds of no typing)
+let autoSaveTimeout;
+document.getElementById('userMemo').addEventListener('input', function() {
+  clearTimeout(autoSaveTimeout);
+  autoSaveTimeout = setTimeout(() => {
+    document.getElementById('memoForm').dispatchEvent(new Event('submit'));
+  }, 2000);
+});
+</script>
+
+<%- include('partials/footer'); %>

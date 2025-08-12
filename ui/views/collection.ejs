@@ -95,62 +95,69 @@
         <p class="text-muted">Select sources to search:</p>
         
         <div class="row mb-3">
-          <div class="col-md-3">
+          <div class="col-md-6 mb-3">
             <div class="form-check">
               <input class="form-check-input" type="checkbox" name="sources" value="wikipedia" id="search-src-wikipedia" checked>
-              <label class="form-check-label" for="search-src-wikipedia">
-                <span class="badge badge-wikipedia me-1">Wikipedia</span> Encyclopedia
+              <label class="form-check-label d-flex align-items-center" for="search-src-wikipedia">
+                <span class="badge badge-wikipedia me-2">Wikipedia</span> 
+                <span>Encyclopedia & Reference</span>
               </label>
             </div>
           </div>
-          <div class="col-md-3">
+          <div class="col-md-6 mb-3">
             <div class="form-check">
               <input class="form-check-input" type="checkbox" name="sources" value="openlibrary" id="search-src-openlibrary" checked>
-              <label class="form-check-label" for="search-src-openlibrary">
-                <span class="badge badge-openlibrary me-1">OpenLibrary</span> Books
+              <label class="form-check-label d-flex align-items-center" for="search-src-openlibrary">
+                <span class="badge badge-openlibrary me-2">OpenLibrary</span> 
+                <span>Books & Publications</span>
               </label>
             </div>
           </div>
-          <div class="col-md-3">
+          <div class="col-md-6 mb-3">
             <div class="form-check">
               <input class="form-check-input" type="checkbox" name="sources" value="google" id="search-src-google" checked>
-              <label class="form-check-label" for="search-src-google">
-                <span class="badge badge-google me-1">Google</span> Web Search
+              <label class="form-check-label d-flex align-items-center" for="search-src-google">
+                <span class="badge badge-google me-2">Google</span> 
+                <span>Web Search & General</span>
               </label>
             </div>
           </div>
-          <div class="col-md-3">
+          <div class="col-md-6 mb-3">
             <div class="form-check">
               <input class="form-check-input" type="checkbox" name="sources" value="arxiv" id="search-src-arxiv" checked>
-              <label class="form-check-label" for="search-src-arxiv">
-                <span class="badge badge-arxiv me-1">arXiv</span> Academic Papers
+              <label class="form-check-label d-flex align-items-center" for="search-src-arxiv">
+                <span class="badge badge-arxiv me-2">arXiv</span> 
+                <span>Academic Papers & Research</span>
               </label>
             </div>
           </div>
         </div>
         
         <div class="row mb-3">
-          <div class="col-md-4">
+          <div class="col-md-6 mb-3">
             <div class="form-check">
               <input class="form-check-input" type="checkbox" name="sources" value="github" id="search-src-github">
-              <label class="form-check-label" for="search-src-github">
-                <span class="badge badge-github me-1">GitHub</span> Code & Repos
+              <label class="form-check-label d-flex align-items-center" for="search-src-github">
+                <span class="badge badge-github me-2">GitHub</span> 
+                <span>Code & Repositories</span>
               </label>
             </div>
           </div>
-          <div class="col-md-4">
+          <div class="col-md-6 mb-3">
             <div class="form-check">
               <input class="form-check-input" type="checkbox" name="sources" value="mdn" id="search-src-mdn">
-              <label class="form-check-label" for="search-src-mdn">
-                <span class="badge badge-mdn me-1">MDN</span> Dev Docs
+              <label class="form-check-label d-flex align-items-center" for="search-src-mdn">
+                <span class="badge badge-mdn me-2">MDN</span> 
+                <span>Web Development Docs</span>
               </label>
             </div>
           </div>
-          <div class="col-md-4">
+          <div class="col-md-6 mb-3">
             <div class="form-check">
               <input class="form-check-input" type="checkbox" name="sources" value="stackoverflow" id="search-src-stackoverflow">
-              <label class="form-check-label" for="search-src-stackoverflow">
-                <span class="badge badge-stackoverflow me-1">Stack Overflow</span> Q&A
+              <label class="form-check-label d-flex align-items-center" for="search-src-stackoverflow">
+                <span class="badge badge-stackoverflow me-2">StackOverflow</span> 
+                <span>Programming Q&A</span>
               </label>
             </div>
           </div>
@@ -160,22 +167,14 @@
         <h4>Search Settings</h4>
         
         <div class="mb-3">
-          <label for="maxResults" class="form-label">Max Results: <span id="maxResultsDisplay">15</span></label>
-          <input type="range" class="form-range" id="maxResults" name="maxResults" min="5" max="50" value="15">
-          <div class="form-text">Number of results to retrieve from each source. Higher numbers may take longer.</div>
-        </div>
-        
-        <div class="form-check mb-3">
-          <input class="form-check-input" type="checkbox" name="saveToKnowledgeBooks" id="saveToKnowledgeBooks" checked>
-          <label class="form-check-label" for="saveToKnowledgeBooks">
-            Save results as Knowledge Book
-          </label>
-          <div class="form-text">Create a persistent Knowledge Book from search results and display it in the home collection.</div>
+          <label for="maxResults" class="form-label">Max Results per Source</label>
+          <input type="number" class="form-control" id="maxResults" name="maxResults" min="5" max="100" value="30" style="max-width: 120px;">
+          <div class="form-text">Number of results to retrieve from each source (5-100). Higher numbers may take longer.</div>
         </div>
       </div>
       
       <button type="submit" class="btn btn-primary btn-lg" id="collection-submit-btn">
-        <i class="bi bi-search"></i> Search Now
+        <i class="bi bi-search"></i> Create Knowledge Book
       </button>
     </form>
   </div>
@@ -207,11 +206,6 @@
       const submitBtn = document.getElementById('collection-submit-btn');
       submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Searching...';
       submitBtn.disabled = true;
-    });
-    
-    // Update max results display on range slider change
-    document.getElementById('maxResults').addEventListener('input', function() {
-      document.getElementById('maxResultsDisplay').textContent = this.value;
     });
   });
 </script>

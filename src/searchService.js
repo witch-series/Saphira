@@ -127,9 +127,11 @@ class SearchService {
       // this.saveToCache(cacheKey, results);
 
       // Save results to file if requested
-      if (options.saveResults !== false) {
-        await this.saveSearchResults(trimmedQuery, results, sourcesUsed);
-      }
+      // Note: Commented out to prevent automatic creation of search-results files
+      // Knowledge Book creation handles data persistence instead
+      // if (options.saveResults !== false) {
+      //   await this.saveSearchResults(trimmedQuery, results, sourcesUsed);
+      // }
 
       this.logger.info(`✅ Search completed: ${results.length} total results from [${sourcesUsed.join(', ')}]`);
 
